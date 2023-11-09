@@ -1,6 +1,7 @@
 import pandas as pd
 import os
-
+import numpy as np
+from math import radians
 
 def load_play_data(play_id, game_id=2022090800, week=1):
     """
@@ -79,3 +80,35 @@ def get_los_details(play):
     los = play['yardlineNumber'].iloc[0]
     yards_to_go = play['yardsToGo'].iloc[0]
     return los, yards_to_go
+
+
+def calculate_dx_dy(x, y, angle, speed, multiplier):
+    """
+    Not sure if this is needed. Might be required for old data without this tracking
+    :param x:
+    :param y:
+    :param angle:
+    :param speed:
+    :param multiplier:
+    :return:
+    """
+    if angle <= 90:
+        angle = angle
+        dx = np.sin(radians(angle)) * multiplier * speed
+        dy = np.cos(radians(angle)) * multiplier * speed
+        return dx, dy
+    if angle > 90 and angle <= 180:
+        angle = angle - 90
+        dx = np.sin(radians(angle)) * multiplier * speed
+        dy = -np.cos(radians(angle)) * multiplier * speed
+        return dx, dy
+    if angle > 180 and angle <= 270:
+        angle = angle - 180
+        dx = -(np.sin(radians(angle)) * multiplier * speed)
+        dy = -(np.cos(radians(angle)) * multiplier * speed)
+        return dx, dy
+    if angle > 270 and angle <= 360:
+        angle = 360 - angle
+        dx = -np.sin(radians(angle)) * multiplier * speed
+        dy = np.cos(radians(angle)) * multiplier * speed
+        return dx, dy

@@ -182,26 +182,120 @@ def plot_play_tracked_movements(playId, gameId, week):
 ###################
 # Animating PLayers Movement: https://www.kaggle.com/code/ar2017/nfl-big-data-bowl-2021-animating-players-movement
 ###################
-def animate_play(playId, gameId, week):
+def animate_player_movement(playId, gameId, weekNumber):
     """
-    Animates the tracked movements for a single play.
+    Animates player movement for a specific play.
+    :param weekNumber:
     :param playId:
     :param gameId:
-    :param week:
     :return:
     """
-    fig, ax = create_football_field()
-    play_df = load_play_data(playId, gameId, week)
-    step_list = np.linspace(play_df['step'].min(), play_df['step'].max(), 10, dtype=int)
+    # weekData = pd.read_csv('../input/nfl-big-data-bowl-2021/week' + str(weekNumber) + '.csv')
+    # playData = pd.read_csv('../input/nfl-big-data-bowl-2021/plays.csv')
+    #
+    # playHome = weekData.query('gameId==' + str(gameId) + ' and playId==' + str(playId) + ' and team == "home"')
+    # playAway = weekData.query('gameId==' + str(gameId) + ' and playId==' + str(playId) + ' and team == "away"')
+    # playFootball = weekData.query('gameId==' + str(gameId) + ' and playId==' + str(playId) + ' and team == "football"')
 
-    marker1 = MarkerStyle(marker='x', fillstyle='full')
-    marker2 = MarkerStyle(marker='o', fillstyle='full')
-    # ax.scatter(row[1]['x_position'], row[1]['y_position'], marker=marker1, s=150, color='red')
-    pass
+    play_df = load_play_data(playId, gameId, weekNumber)
+    playHome, playAway, playFootball = load_teams_from_play(play_df)
+    play = get_play_by_id(gameId, playId)
 
+    playHome['time'] = playHome['time'].apply(lambda x: dateutil.parser.parse(x).timestamp()).rank(method='dense')
+    playAway['time'] = playAway['time'].apply(lambda x: dateutil.parser.parse(x).timestamp()).rank(method='dense')
+    playFootball['time'] = playFootball['time'].apply(lambda x: dateutil.parser.parse(x).timestamp()).rank(
+        method='dense')
 
+    maxTime = int(playAway['time'].unique().max())
+    minTime = int(playAway['time'].unique().min())
+    playDir = playHome.sample(1)['playDirection'].item()
+
+    yardlineNumber, yardsToGo = get_los_details(play)
+    absoluteYardlineNumber = play['absoluteYardlineNumber'].item()-10
+
+    if (absoluteYardlineNumber > 50):
+        yardlineNumber = 100 - yardlineNumber
+    if (absoluteYardlineNumber <= 50):
+        yardlineNumber = yardlineNumber
+
+    if (playDir == 'left'):
+        yardsToGo = -yardsToGo
+    else:
+        yardsToGo = yardsToGo
+
+    fig, ax = create_football_field(highlight_line=True, highlight_line_number=yardlineNumber,
+                                    highlight_first_down_line=True, yards_to_go=yardsToGo)
+    playDesc = play['playDescription'].item()
+    plt.title(f'Game # {gameId} Play # {playId} \n {playDesc}')
+
+    def update_animation(time):
+        patch = []
+
+        # Home players' location
+        homeX = playHome.query('time == ' + str(time))['x']
+        homeY = playHome.query('time == ' + str(time))['y']
+        homeNum = playHome.query('time == ' + str(time))['jerseyNumber']
+        homeOrient = playHome.query('time == ' + str(time))['o']
+        homeDir = playHome.query('time == ' + str(time))['dir']
+        homeSpeed = playHome.query('time == ' + str(time))['s']
+        patch.extend(plt.plot(homeX, homeY, 'o', c='gold', ms=20, mec='white'))
+
+        # Home players' jersey number
+        for x, y, num in zip(homeX, homeY, homeNum):
+            patch.append(plt.text(x, y, int(num), va='center', ha='center', color='black', size='medium'))
+
+        # Home players' orientation
+        for x, y, orient in zip(homeX, homeY, homeOrient):
+            dx, dy = calculate_dx_dy(x, y, orient, 1, 1)
+            patch.append(plt.arrow(x, y, dx, dy, color='gold', width=0.5, shape='full'))
+
+        # Home players' direction
+        for x, y, direction, speed in zip(homeX, homeY, homeDir, homeSpeed):
+            dx, dy = calculate_dx_dy(x, y, direction, speed, 1)
+            patch.append(plt.arrow(x, y, dx, dy, color='black', width=0.25, shape='full'))
+
+        # Away players' location
+        awayX = playAway.query('time == ' + str(time))['x']
+        awayY = playAway.query('time == ' + str(time))['y']
+        awayNum = playAway.query('time == ' + str(time))['jerseyNumber']
+        awayOrient = playAway.query('time == ' + str(time))['o']
+        awayDir = playAway.query('time == ' + str(time))['dir']
+        awaySpeed = playAway.query('time == ' + str(time))['s']
+        patch.extend(plt.plot(awayX, awayY, 'o', c='orangered', ms=20, mec='white'))
+
+        # Away players' jersey number
+        for x, y, num in zip(awayX, awayY, awayNum):
+            patch.append(plt.text(x, y, int(num), va='center', ha='center', color='white', size='medium'))
+
+        # Away players' orientation
+        for x, y, orient in zip(awayX, awayY, awayOrient):
+            dx, dy = calculate_dx_dy(x, y, orient, 1, 1)
+            patch.append(plt.arrow(x, y, dx, dy, color='orangered', width=0.5, shape='full'))
+
+        # Away players' direction
+        for x, y, direction, speed in zip(awayX, awayY, awayDir, awaySpeed):
+            dx, dy = calculate_dx_dy(x, y, direction, speed, 1)
+            patch.append(plt.arrow(x, y, dx, dy, color='black', width=0.25, shape='full'))
+
+        # Footballs' location
+        footballX = playFootball.query('time == ' + str(time))['x']
+        footballY = playFootball.query('time == ' + str(time))['y']
+        patch.extend(plt.plot(footballX, footballY, 'o', c='black', ms=10, mec='white',
+                              data=playFootball.query('time == ' + str(time))['club']))
+
+        return patch
+
+    ims = [[]]
+    for time in np.arange(minTime, maxTime + 1):
+        patch = update_animation(time)
+        ims.append(patch)
+
+    anim = animation.ArtistAnimation(fig, ims, repeat=False)
+
+    return anim
 
 
 gameId, playId, week = 2022090800, 343, 1
-plot_play_events(playId, gameId, week)
+# plot_play_events(playId, gameId, week)
 # plot_play_tracked_movements(playId, gameId, week)
+anim = animate_player_movement(gameId=gameId, playId=playId, weekNumber=week)

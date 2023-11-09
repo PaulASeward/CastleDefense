@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 import seaborn as sns
-
+from extractPlayDataUtils import *
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
@@ -17,6 +17,10 @@ import matplotlib.patches as patches
 def create_football_field():
     # Create a rectangle defined via an anchor point *xy* and its *width* and *height*
     rect = patches.Rectangle((0, 0), 120, 53.3, facecolor='green', zorder=0)
+
+    ###################
+    # Other color info: https://matplotlib.org/stable/gallery/color/named_colors.html
+    ###################
 
     # Creating a subplot to plot our field on
     fig, ax = plt.subplots(1, figsize=(12, 6.33))
@@ -86,6 +90,60 @@ def create_football_field():
 
 
 
+###################
+# Plot the play By: https://www.kaggle.com/code/aryashah2k/sports-analytics-visualization
+###################
+def plot_single_play_events(playId, gameId, week):
+    play_df = load_play_data(playId, gameId, week)
+
+    teams = play_df['club'].unique()
+    teams = [team for team in teams if not pd.isna(team)]
+
+    football = play_df[play_df['club'] == 'football']
+    teams = [play_df[play_df['club'] == team] for team in teams if team != 'football']
+
+    if len(teams) != 2:
+        print(f'Error: {len(teams)} teams found for playId {playId} gameId {gameId} week {week}')
+        return
+
+    team_1 = teams[0]
+    team_2 = teams[1]
+
+    team_1_name = team_1['club'].iloc[0]
+    team_2_name = team_2['club'].iloc[0]
+
+    team_1_color = 'orange'
+    team_2_color = 'blue'
+
+    home_team = play_df[play_df['club'] == 'LA']
+    away_team = play_df[play_df['club'] == 'BUF']
+
+    events = play_df['event'].unique()
+    events = [event for event in events if not pd.isna(event)]
+
+    for event in events:
+        ht = home_team[home_team['event'] == event]
+        at = away_team[away_team['event'] == event]
+        ft = football[football['event'] == event]
+
+        if (not ht.empty) and (not at.empty) :
+            fig, ax = create_football_field()
+            ht.plot(x='x', y='y', kind='scatter', ax=ax, color=team_1_color, s=30, label=team_1_name)
+            at.plot(x='x', y='y', kind='scatter', ax=ax, color=team_2_color, s=30, label=team_2_name)
+            ft.plot(x='x', y='y', kind='scatter', ax=ax, color='brown', s=30, label='football')
+
+            plt.title(f'Game #{gameId} Play #{playId} Week #{week} at {event}')
+            plt.legend()
+            plt.show()
+
 
 # create_football_field()
 # plt.show()
+
+gameId = 2022090800
+playId = 343
+week = 1
+
+plot_single_play_events(playId, gameId, week)
+
+

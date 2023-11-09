@@ -89,52 +89,58 @@ def create_football_field():
     return fig, ax
 
 
+def plot_single_event(ht_df, at_df, ft_df, event):
+    """
+    Plots a single event on the field.
+    :param ht_df: 1st team as home team with each player locations
+    :param at_df: 2nd team as away team with each player locations
+    :param ft_df: Football location
+    :param event: Name of the event
+    :return:
+    """
+    fig, ax = create_football_field()
 
-###################
-# Plot the play By: https://www.kaggle.com/code/aryashah2k/sports-analytics-visualization
-###################
+    ht = ht_df[ht_df['event'] == event]
+    at = at_df[at_df['event'] == event]
+    ft = ft_df[ft_df['event'] == event]
+
+    ht_name = ht['club'].iloc[0]
+    at_name = at['club'].iloc[0]
+
+    ht.plot(x='x', y='y', kind='scatter', ax=ax, color='orange', s=30, label=ht_name)
+    at.plot(x='x', y='y', kind='scatter', ax=ax, color='blue', s=30, label=at_name)
+    ft.plot(x='x', y='y', kind='scatter', ax=ax, color='brown', s=30, label='football')
+
+    gameId = ht['gameId'].iloc[0]
+    playId = ht['playId'].iloc[0]
+
+    plt.title(f'{ht_name} Vs. {at_name}: Game #{gameId} Play #{playId} at {event}')
+    plt.legend()
+    plt.show()
+
+
 def plot_single_play_events(playId, gameId, week):
+    """
+    Plots all events for a single play.
+    :param playId:
+    :param gameId:
+    :param week:
+    :return:
+    """
     play_df = load_play_data(playId, gameId, week)
-
-    teams = play_df['club'].unique()
-    teams = [team for team in teams if not pd.isna(team)]
-
-    football = play_df[play_df['club'] == 'football']
-    teams = [play_df[play_df['club'] == team] for team in teams if team != 'football']
-
-    if len(teams) != 2:
-        print(f'Error: {len(teams)} teams found for playId {playId} gameId {gameId} week {week}')
-        return
-
-    team_1 = teams[0]
-    team_2 = teams[1]
+    team_1, team_2, football = load_teams_from_play(play_df)
 
     team_1_name = team_1['club'].iloc[0]
     team_2_name = team_2['club'].iloc[0]
 
-    team_1_color = 'orange'
-    team_2_color = 'blue'
-
-    home_team = play_df[play_df['club'] == 'LA']
-    away_team = play_df[play_df['club'] == 'BUF']
+    home_team = play_df[play_df['club'] == team_1_name]
+    away_team = play_df[play_df['club'] == team_2_name]
 
     events = play_df['event'].unique()
     events = [event for event in events if not pd.isna(event)]
 
     for event in events:
-        ht = home_team[home_team['event'] == event]
-        at = away_team[away_team['event'] == event]
-        ft = football[football['event'] == event]
-
-        if (not ht.empty) and (not at.empty) :
-            fig, ax = create_football_field()
-            ht.plot(x='x', y='y', kind='scatter', ax=ax, color=team_1_color, s=30, label=team_1_name)
-            at.plot(x='x', y='y', kind='scatter', ax=ax, color=team_2_color, s=30, label=team_2_name)
-            ft.plot(x='x', y='y', kind='scatter', ax=ax, color='brown', s=30, label='football')
-
-            plt.title(f'Game #{gameId} Play #{playId} Week #{week} at {event}')
-            plt.legend()
-            plt.show()
+        plot_single_event(home_team, away_team, football, event)
 
 
 # create_football_field()
@@ -145,5 +151,3 @@ playId = 343
 week = 1
 
 plot_single_play_events(playId, gameId, week)
-
-

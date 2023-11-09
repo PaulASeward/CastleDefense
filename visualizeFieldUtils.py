@@ -89,32 +89,33 @@ def create_football_field():
     return fig, ax
 
 
-def plot_single_event(ht_df, at_df, ft_df, event):
+def plot_tracked_movements(ht_df, at_df, ft_df, description=None):
     """
-    Plots a single event on the field.
-    :param ht_df: 1st team as home team with each player locations
-    :param at_df: 2nd team as away team with each player locations
-    :param ft_df: Football location
-    :param event: Name of the event
+    Plots the tracked movements from available play data.
+    :param description: Description of the play
+    :param ht_df:
+    :param at_df:
+    :param ft_df:
     :return:
     """
     fig, ax = create_football_field()
 
-    ht = ht_df[ht_df['event'] == event]
-    at = at_df[at_df['event'] == event]
-    ft = ft_df[ft_df['event'] == event]
+    ht_name = ht_df['club'].iloc[0]
+    at_name = at_df['club'].iloc[0]
 
-    ht_name = ht['club'].iloc[0]
-    at_name = at['club'].iloc[0]
+    ht_df.plot(x='x', y='y', kind='scatter', ax=ax, color='orange', s=30, label=ht_name)
+    at_df.plot(x='x', y='y', kind='scatter', ax=ax, color='blue', s=30, label=at_name)
+    ft_df.plot(x='x', y='y', kind='scatter', ax=ax, color='brown', s=30, label='football')
 
-    ht.plot(x='x', y='y', kind='scatter', ax=ax, color='orange', s=30, label=ht_name)
-    at.plot(x='x', y='y', kind='scatter', ax=ax, color='blue', s=30, label=at_name)
-    ft.plot(x='x', y='y', kind='scatter', ax=ax, color='brown', s=30, label='football')
+    gameId = ht_df['gameId'].iloc[0]
+    playId = ht_df['playId'].iloc[0]
 
-    gameId = ht['gameId'].iloc[0]
-    playId = ht['playId'].iloc[0]
+    title = f'{ht_name} Vs. {at_name}: Game #{gameId} Play #{playId}'
 
-    plt.title(f'{ht_name} Vs. {at_name}: Game #{gameId} Play #{playId} at {event}')
+    if description is not None:
+        title += f' ({description})'
+
+    plt.title(title)
     plt.legend()
     plt.show()
 
@@ -134,7 +135,11 @@ def plot_single_play_events(playId, gameId, week):
     events = [event for event in events if not pd.isna(event)]
 
     for event in events:
-        plot_single_event(team_1, team_2, football, event)
+        ht = team_1[team_1['event'] == event]
+        at = team_2[team_2['event'] == event]
+        ft = football[football['event'] == event]
+
+        plot_tracked_movements(ht, at, ft, event)
 
 
 def plot_single_play_tracked_movements(playId, gameId, week):
@@ -147,7 +152,10 @@ def plot_single_play_tracked_movements(playId, gameId, week):
     """
     play_df = load_play_data(playId, gameId, week)
     team_1, team_2, football = load_teams_from_play(play_df)
-    pass
+
+    plot_tracked_movements(team_1, team_2, football)
+
+
 
 
 

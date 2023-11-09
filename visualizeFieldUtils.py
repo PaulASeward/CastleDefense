@@ -130,17 +130,25 @@ def plot_single_play_events(playId, gameId, week):
     play_df = load_play_data(playId, gameId, week)
     team_1, team_2, football = load_teams_from_play(play_df)
 
-    team_1_name = team_1['club'].iloc[0]
-    team_2_name = team_2['club'].iloc[0]
-
-    home_team = play_df[play_df['club'] == team_1_name]
-    away_team = play_df[play_df['club'] == team_2_name]
-
     events = play_df['event'].unique()
     events = [event for event in events if not pd.isna(event)]
 
     for event in events:
-        plot_single_event(home_team, away_team, football, event)
+        plot_single_event(team_1, team_2, football, event)
+
+
+def plot_single_play_tracked_movements(playId, gameId, week):
+    """
+    Plots the tracked movements for a single play.
+    :param playId:
+    :param gameId:
+    :param week:
+    :return:
+    """
+    play_df = load_play_data(playId, gameId, week)
+    team_1, team_2, football = load_teams_from_play(play_df)
+    pass
+
 
 
 # create_football_field()
@@ -151,3 +159,4 @@ playId = 343
 week = 1
 
 plot_single_play_events(playId, gameId, week)
+

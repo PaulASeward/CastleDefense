@@ -6,17 +6,18 @@ from extractPlayDataUtils import *
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.markers import MarkerStyle
-import matplotlib.animation as animation
-
+from ipywidgets import interact, fixed
+from matplotlib import animation
+from math import radians
 import subprocess
 import IPython
 from IPython.display import Video, display
 
+import dateutil
+import warnings
+warnings.filterwarnings('ignore')
 
 
-
-# train = pd.read_csv('../input/nfl-big-data-bowl-2020/train.csv', low_memory=False)
-# train2021 = pd.read_csv('../input/nfl-big-data-bowl-2021/plays.csv')
 
 
 ###################
@@ -95,8 +96,8 @@ def create_football_field(linenumbers=True,
     if highlight_line:
         hl = highlight_line_number + 10
         plt.plot([hl, hl], [0, 53.3], color='yellow')
-        # plt.text(hl + 2, 50, '<- {}'.format(highlighted_name),
-        #         color='yellow')
+        plt.text(hl + 2, 50, '<- {}'.format(highlighted_name),
+                color='yellow')
 
     if highlight_first_down_line:
         fl = hl + yards_to_go
@@ -106,8 +107,6 @@ def create_football_field(linenumbers=True,
     return fig, ax
 
 
-## TODO: Add optional line of scrimmage to plot method with default true.
-## Similar implementation: https://www.kaggle.com/code/robikscube/nfl-big-data-bowl-plotting-player-position
 def plot_tracked_movements(ht_df, at_df, ft_df, description=None):
     """
     Plots the tracked movements from available play data.
@@ -117,7 +116,12 @@ def plot_tracked_movements(ht_df, at_df, ft_df, description=None):
     :param ft_df:
     :return:
     """
-    fig, ax = create_football_field()
+    play = get_play_by_id(ht_df['gameId'].iloc[0], ht_df['playId'].iloc[0])
+    line_of_scrimmage, yards_to_go = get_los_details(play)
+    fig, ax = create_football_field(highlight_line_number=line_of_scrimmage,
+                                    highlight_line=True,
+                                    highlight_first_down_line=True,
+                                    yards_to_go=yards_to_go)
 
     ht_name = ht_df['club'].iloc[0]
     at_name = at_df['club'].iloc[0]
@@ -192,14 +196,12 @@ def animate_play(playId, gameId, week):
 
     marker1 = MarkerStyle(marker='x', fillstyle='full')
     marker2 = MarkerStyle(marker='o', fillstyle='full')
-    ax.scatter(row[1]['x_position'], row[1]['y_position'], marker=marker1, s=150, color='red')
+    # ax.scatter(row[1]['x_position'], row[1]['y_position'], marker=marker1, s=150, color='red')
+    pass
 
 
 
 
-# gameId = 2022090800
-# playId = 343
-# week = 1
-#
-# # plot_single_play_events(playId, gameId, week)
+gameId, playId, week = 2022090800, 343, 1
+plot_play_events(playId, gameId, week)
 # plot_play_tracked_movements(playId, gameId, week)

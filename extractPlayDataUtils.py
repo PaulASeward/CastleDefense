@@ -54,3 +54,28 @@ def load_teams_from_play(play_df):
     ##  TODO: Add Helper method to use here so all plays are facing the same direction (Left to Right)
 
     return team_1, team_2, football
+
+
+def get_play_by_id(gameId, playId):
+    """
+    Returns a play DataFrame given a gameId and playId.
+    :param ht_df:
+    :param gameId:
+    :param playId:
+    :return:
+    """
+    path_to_plays = os.path.join(os.getcwd(), 'overview_data', 'plays.csv')
+    plays_df = pd.read_csv(path_to_plays)
+    play = plays_df[(plays_df['gameId'] == gameId) & (plays_df['playId'] == playId)]
+
+    return play
+
+def get_los_details(play):
+    """
+    Extracts the line of scrimmage and yards to go from a play DataFrame.
+    :param play:
+    :return:
+    """
+    los = play['yardlineNumber'].iloc[0]
+    yards_to_go = play['yardsToGo'].iloc[0]
+    return los, yards_to_go

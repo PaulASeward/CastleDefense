@@ -101,7 +101,7 @@ def drawPitch(width, height, color="w"):
 # Extract One Game By: https://www.kaggle.com/code/jaronmichal/tracking-data-visualization/notebook
 ###################
 def extract_one_game(game_id, play_id, week):
-    df = pd.read_csv(os.path.join(os.getcwd(), 'tracking_data', 'tracking_week_' + str(week) + '.csv'))
+    df = pd.read_csv(os.path.join(os.getcwd(), '../tracking_data', 'tracking_week_' + str(week) + '.csv'))
     game = df[(df.gameId == game_id) & (df.playId == play_id)]
     home = {}
     away = {}

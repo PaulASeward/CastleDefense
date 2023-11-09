@@ -110,13 +110,14 @@ def extract_one_game(game_id, play_id, week):
     players = game.sort_values(['frameId'], ascending=True).groupby('nflId')
     for id, dx in players:
         jerseyNumber = int(dx.jerseyNumber.iloc[0])
-        if dx.team.iloc[0] == "home":
+        if dx.club.iloc[0] == "BUF":
             home[jerseyNumber] = list(zip(dx.x.tolist(), dx.y.tolist()))
-        elif dx.team.iloc[0] == "away":
+        elif dx.club.iloc[0] == "LA":
             away[jerseyNumber] = list(zip(dx.x.tolist(), dx.y.tolist()))
 
     ball_df = game.sort_values(['frameId'], ascending=True)
-    ball_df = ball_df[ball_df.team == "football"]
+    # print(ball_df)
+    # ball_df = ball_df[ball_df.team == "football"]
     balls = list(zip(ball_df.x.tolist(), ball_df.y.tolist()))
     return home, away, balls
 
@@ -172,3 +173,7 @@ def animate_one_play(game_id, play_id):
                                    frames=len(balls), interval=100, blit=True)
 
     return HTML(anim.to_html5_video())
+
+
+# animate_one_play(2022090800, 56)
+extract_one_game(2022090800, 56, 1)

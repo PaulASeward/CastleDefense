@@ -49,4 +49,8 @@ def load_teams_from_play(play_df):
     team_1 = teams[0]
     team_2 = teams[1]
 
+    ##  TODO: Add Helper method to use here to sequentially order by timestep
+
+    ##  TODO: Add Helper method to use here so all plays are facing the same direction (Left to Right)
+
     return team_1, team_2, football

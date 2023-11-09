@@ -5,6 +5,7 @@ import seaborn as sns
 from extractPlayDataUtils import *
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+from matplotlib.animation import FFMpegWriter
 from matplotlib.markers import MarkerStyle
 from ipywidgets import interact, fixed
 from matplotlib import animation
@@ -190,13 +191,6 @@ def animate_player_movement(playId, gameId, weekNumber):
     :param gameId:
     :return:
     """
-    # weekData = pd.read_csv('../input/nfl-big-data-bowl-2021/week' + str(weekNumber) + '.csv')
-    # playData = pd.read_csv('../input/nfl-big-data-bowl-2021/plays.csv')
-    #
-    # playHome = weekData.query('gameId==' + str(gameId) + ' and playId==' + str(playId) + ' and team == "home"')
-    # playAway = weekData.query('gameId==' + str(gameId) + ' and playId==' + str(playId) + ' and team == "away"')
-    # playFootball = weekData.query('gameId==' + str(gameId) + ' and playId==' + str(playId) + ' and team == "football"')
-
     play_df = load_play_data(playId, gameId, weekNumber)
     playHome, playAway, playFootball = load_teams_from_play(play_df)
     play = get_play_by_id(gameId, playId)
@@ -278,10 +272,11 @@ def animate_player_movement(playId, gameId, weekNumber):
             patch.append(plt.arrow(x, y, dx, dy, color='black', width=0.25, shape='full'))
 
         # Footballs' location
+        football_data = playFootball.query('time == ' + str(time))['club']
         footballX = playFootball.query('time == ' + str(time))['x']
         footballY = playFootball.query('time == ' + str(time))['y']
         patch.extend(plt.plot(footballX, footballY, 'o', c='black', ms=10, mec='white',
-                              data=playFootball.query('time == ' + str(time))['club']))
+                              data=football_data))
 
         return patch
 
@@ -295,7 +290,35 @@ def animate_player_movement(playId, gameId, weekNumber):
     return anim
 
 
-gameId, playId, week = 2022090800, 343, 1
-# plot_play_events(playId, gameId, week)
-# plot_play_tracked_movements(playId, gameId, week)
-anim = animate_player_movement(gameId=gameId, playId=playId, weekNumber=week)
+def save_animation(anim, name):
+    """
+    Saves the animation to a file.
+    :param anim:
+    :param name:
+    :return:
+    """
+    from matplotlib.animation import FFMpegWriter
+    from IPython.display import Video
+    import warnings
+    warnings.filterwarnings('ignore')
+
+    # Install 'ffmpeg':
+    #     If you don't already have 'ffmpeg' installed on your system, you can download it from the official website: https://www.ffmpeg.org/download.html
+    #     Download and install 'ffmpeg' based on your operating system.
+    #
+    # Ensure 'ffmpeg' is in your system's PATH:
+    #     After installing 'ffmpeg,' make sure it's added to your system's PATH so that Python can locate it. If it's not in your PATH, you may encounter the "No such file or directory" error.
+    #
+    # Restart your Python environment:
+    #     If you installed 'ffmpeg' or modified your PATH settings, restart your Python environment (e.g., Jupyter Notebook, Python script, or IDE) to apply the changes.
+
+
+    anim.save(name, writer=FFMpegWriter(fps=10))
+    Video(name)
+    return
+
+
+# gameId, playId, week = 2022090800, 343, 1
+# # plot_play_events(playId, gameId, week)
+# # plot_play_tracked_movements(playId, gameId, week)
+# anim = animate_player_movement(gameId=gameId, playId=playId, weekNumber=week)

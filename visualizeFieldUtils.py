@@ -13,7 +13,7 @@ from math import radians
 import subprocess
 import IPython
 from IPython.display import Video, display
-
+from JSAnimation import IPython_display
 import dateutil
 import warnings
 warnings.filterwarnings('ignore')
@@ -298,9 +298,16 @@ def save_animation(anim, name):
     :return:
     """
     from matplotlib.animation import FFMpegWriter
-    from IPython.display import Video
     import warnings
+    import IPython
+    from IPython.display import Video, display
+
     warnings.filterwarnings('ignore')
+
+    video = anim.to_html5_video()
+    html = IPython.display.HTML(video)
+    display(html)
+    plt.close()
 
     # Install 'ffmpeg':
     #     If you don't already have 'ffmpeg' installed on your system, you can download it from the official website: https://www.ffmpeg.org/download.html
@@ -313,12 +320,15 @@ def save_animation(anim, name):
     #     If you installed 'ffmpeg' or modified your PATH settings, restart your Python environment (e.g., Jupyter Notebook, Python script, or IDE) to apply the changes.
 
 
-    anim.save(name, writer=FFMpegWriter(fps=10))
-    Video(name)
+    # anim.save(name, writer=FFMpegWriter(fps=10))
+    # Video(name)
+    #
+    # display(IPython_display.display_animation(anim))
     return
 
 
-# gameId, playId, week = 2022090800, 343, 1
+gameId, playId, week = 2022090800, 343, 1
 # # plot_play_events(playId, gameId, week)
 # # plot_play_tracked_movements(playId, gameId, week)
-# anim = animate_player_movement(gameId=gameId, playId=playId, weekNumber=week)
+anim = animate_player_movement(gameId=gameId, playId=playId, weekNumber=week)
+save_animation(anim, 'animation_notrail.mp4')

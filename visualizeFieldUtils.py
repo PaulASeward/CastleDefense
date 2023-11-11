@@ -104,6 +104,7 @@ def plot_tracked_movements(ht_df, at_df, ft_df, description=None):
     :param ft_df:
     :return:
     """
+    plt.close()
     play = get_play_by_id(ht_df['gameId'].iloc[0], ht_df['playId'].iloc[0])
     line_of_scrimmage, yards_to_go = get_los_details(play)
     fig, ax = create_football_field(highlight_line_number=line_of_scrimmage,
@@ -310,7 +311,9 @@ def save_animation(anim, name):
 
 
 gameId, playId, week = 2022090800, 343, 1
-# # plot_play_events(playId, gameId, week)
+
+plot_play_events(playId, gameId, week)
 # # plot_play_tracked_movements(playId, gameId, week)
-anim = animate_player_movement(gameId=gameId, playId=playId, weekNumber=week)
-save_animation(anim, 'animate.mp4')
+
+# anim = animate_player_movement(gameId=gameId, playId=playId, weekNumber=week)
+# save_animation(anim, 'animate.mp4')

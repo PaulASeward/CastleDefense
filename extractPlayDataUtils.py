@@ -3,6 +3,7 @@ import os
 import numpy as np
 from math import radians
 
+
 def load_play_data(play_id, game_id=2022090800, week=1):
     """
     Loads tracking data for a specific play.
@@ -50,7 +51,7 @@ def load_teams_from_play(play_df):
     team_1 = teams[0]
     team_2 = teams[1]
 
-    ##  TODO: Add Helper method to use here to sequentially order by timestep
+    ##  TODO: Add Helper method to use here to sequentially order by timestep. Animation functions already have own implementation of this that triggers warnings
 
     ##  TODO: Add Helper method to use here so all plays are facing the same direction (Left to Right)
 
@@ -70,6 +71,7 @@ def get_play_by_id(gameId, playId):
     play = plays_df[(plays_df['gameId'] == gameId) & (plays_df['playId'] == playId)]
 
     return play
+
 
 def get_los_details(play):
     """

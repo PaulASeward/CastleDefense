@@ -1,24 +1,11 @@
-import pandas as pd
-import numpy as np
-import os
-import seaborn as sns
 from extractPlayDataUtils import *
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from matplotlib.animation import FFMpegWriter
-from matplotlib.markers import MarkerStyle
-from ipywidgets import interact, fixed
 from matplotlib import animation
-from math import radians
-import subprocess
-import IPython
-from IPython.display import Video, display
-from JSAnimation import IPython_display
 import dateutil
+from matplotlib.animation import FFMpegWriter
 import warnings
 warnings.filterwarnings('ignore')
-
-
 
 
 ###################
@@ -98,7 +85,7 @@ def create_football_field(linenumbers=True,
         hl = highlight_line_number + 10
         plt.plot([hl, hl], [0, 53.3], color='yellow')
         plt.text(hl + 2, 50, '<- {}'.format(highlighted_name),
-                color='yellow')
+                 color='yellow')
 
     if highlight_first_down_line:
         fl = hl + yards_to_go
@@ -205,7 +192,7 @@ def animate_player_movement(playId, gameId, weekNumber):
     playDir = playHome.sample(1)['playDirection'].item()
 
     yardlineNumber, yardsToGo = get_los_details(play)
-    absoluteYardlineNumber = play['absoluteYardlineNumber'].item()-10
+    absoluteYardlineNumber = play['absoluteYardlineNumber'].item() - 10
 
     if (absoluteYardlineNumber > 50):
         yardlineNumber = 100 - yardlineNumber
@@ -297,18 +284,6 @@ def save_animation(anim, name):
     :param name:
     :return:
     """
-    from matplotlib.animation import FFMpegWriter
-    import warnings
-    import IPython
-    from IPython.display import Video, display
-
-    warnings.filterwarnings('ignore')
-
-    video = anim.to_html5_video()
-    html = IPython.display.HTML(video)
-    display(html)
-    plt.close()
-
     # Install 'ffmpeg':
     #     If you don't already have 'ffmpeg' installed on your system, you can download it from the official website: https://www.ffmpeg.org/download.html
     #     Download and install 'ffmpeg' based on your operating system.
@@ -319,11 +294,18 @@ def save_animation(anim, name):
     # Restart your Python environment:
     #     If you installed 'ffmpeg' or modified your PATH settings, restart your Python environment (e.g., Jupyter Notebook, Python script, or IDE) to apply the changes.
 
+    # video = anim.to_html5_video()
+    # html = IPython.display.HTML(video)
+    # display(html)
+    # plt.close()
 
-    # anim.save(name, writer=FFMpegWriter(fps=10))
-    # Video(name)
-    #
     # display(IPython_display.display_animation(anim))
+
+    # Writer = animation.writers['ffmpeg']
+    # writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
+    # anim.save(name, writer=writer)
+
+    anim.save(name, writer=FFMpegWriter(fps=10))
     return
 
 
@@ -331,4 +313,4 @@ gameId, playId, week = 2022090800, 343, 1
 # # plot_play_events(playId, gameId, week)
 # # plot_play_tracked_movements(playId, gameId, week)
 anim = animate_player_movement(gameId=gameId, playId=playId, weekNumber=week)
-save_animation(anim, 'animation_notrail.mp4')
+save_animation(anim, 'animate.mp4')

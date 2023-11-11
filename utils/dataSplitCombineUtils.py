@@ -3,7 +3,7 @@ import os
 
 
 def split_tracking_data():
-    tracking_data_path = os.path.join(os.getcwd(), 'tracking_data')
+    tracking_data_path = os.path.join(os.getcwd(), '../tracking_data')
     list_of_csvs = sorted([f for f in os.listdir(tracking_data_path) if f.endswith(".csv")])
 
     for tracking_week_csv in list_of_csvs:
@@ -30,7 +30,7 @@ def split_tracking_data():
 
 
 def combine_tracking_data():
-    tracking_data_path = os.path.join(os.getcwd(), 'tracking_data')
+    tracking_data_path = os.path.join(os.getcwd(), '../tracking_data')
     list_of_csvs = sorted([f for f in os.listdir(tracking_data_path) if f.endswith("_part1.csv")])
 
     for part1_csv in list_of_csvs:

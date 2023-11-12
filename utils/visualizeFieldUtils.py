@@ -1,3 +1,5 @@
+import os.path
+
 from CastleDefense.utils.extractPlayDataUtils import *
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -278,11 +280,11 @@ def animate_player_movement(playId, gameId, weekNumber):
     return anim
 
 
-def save_animation(anim, name):
+def save_animation(anim, animation_path):
     """
     Saves the animation to a file.
     :param anim:
-    :param name:
+    :param animation_path:
     :return:
     """
     # Install 'ffmpeg':
@@ -304,9 +306,9 @@ def save_animation(anim, name):
 
     # Writer = animation.writers['ffmpeg']
     # writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
-    # anim.save(name, writer=writer)
+    # anim.save(animation_path, writer=writer)
 
-    anim.save(name, writer=FFMpegWriter(fps=10))
+    anim.save(animation_path, writer=FFMpegWriter(fps=10))
     return
 
 

@@ -1,4 +1,4 @@
-from extractPlayDataUtils import *
+from CastleDefense.utils.extractPlayDataUtils import *
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib import animation
@@ -312,7 +312,7 @@ def save_animation(anim, name):
 
 gameId, playId, week = 2022090800, 343, 1
 
-plot_play_events(playId, gameId, week)
+# plot_play_events(playId, gameId, week)
 # # plot_play_tracked_movements(playId, gameId, week)
 
 # anim = animate_player_movement(gameId=gameId, playId=playId, weekNumber=week)

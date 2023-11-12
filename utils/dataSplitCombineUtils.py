@@ -1,9 +1,10 @@
 import pandas as pd
 import os
 
+seperated_data_path = os.path.join(os.getcwd(), '../tracking_data', 'seperated_data')
+tracking_data_path = os.path.join(os.getcwd(), '../tracking_data')
 
 def split_tracking_data():
-    tracking_data_path = os.path.join(os.getcwd(), '../tracking_data')
     list_of_csvs = sorted([f for f in os.listdir(tracking_data_path) if f.endswith(".csv")])
 
     for tracking_week_csv in list_of_csvs:
@@ -22,15 +23,14 @@ def split_tracking_data():
         second_half_filename = tracking_week_csv.replace(".csv", "_part2.csv")
 
         # Save the first and second halves as separate CSV files
-        first_half.to_csv(os.path.join(tracking_data_path, first_half_filename), index=False)
-        second_half.to_csv(os.path.join(tracking_data_path, second_half_filename), index=False)
+        first_half.to_csv(os.path.join(seperated_data_path, first_half_filename), index=False)
+        second_half.to_csv(os.path.join(seperated_data_path, second_half_filename), index=False)
 
-        # Delete the original CSV file
-        os.remove(tracking_week_path)
+        # # Delete the original CSV file
+        # os.remove(tracking_week_path)
 
 
 def combine_tracking_data():
-    tracking_data_path = os.path.join(os.getcwd(), '../tracking_data')
     list_of_csvs = sorted([f for f in os.listdir(tracking_data_path) if f.endswith("_part1.csv")])
 
     for part1_csv in list_of_csvs:
@@ -38,8 +38,8 @@ def combine_tracking_data():
         part2_csv = part1_csv.replace("_part1.csv", "_part2.csv")
 
         # Read both halves into dataframes
-        part1_df = pd.read_csv(os.path.join(tracking_data_path, part1_csv))
-        part2_df = pd.read_csv(os.path.join(tracking_data_path, part2_csv))
+        part1_df = pd.read_csv(os.path.join(seperated_data_path, part1_csv))
+        part2_df = pd.read_csv(os.path.join(seperated_data_path, part2_csv))
 
         # Combine both halves
         combined_df = pd.concat([part1_df, part2_df], ignore_index=True)
@@ -50,10 +50,10 @@ def combine_tracking_data():
         # Save the combined dataframe as a single CSV file
         combined_df.to_csv(os.path.join(tracking_data_path, combined_filename), index=False)
 
-        # Delete the original split files
-        os.remove(os.path.join(tracking_data_path, part1_csv))
-        os.remove(os.path.join(tracking_data_path, part2_csv))
+        # # Delete the original split files
+        # os.remove(os.path.join(tracking_data_path, part1_csv))
+        # os.remove(os.path.join(tracking_data_path, part2_csv))
 
 
-combine_tracking_data()
-# split_tracking_data()
+# combine_tracking_data()
+split_tracking_data()

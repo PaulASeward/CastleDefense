@@ -282,32 +282,13 @@ def animate_player_movement(playId, gameId, weekNumber):
 
 def save_animation(anim, animation_path):
     """
+    May need ffmpeg installed and added to system PATH
+
     Saves the animation to a file.
     :param anim:
     :param animation_path:
     :return:
     """
-    # Install 'ffmpeg':
-    #     If you don't already have 'ffmpeg' installed on your system, you can download it from the official website: https://www.ffmpeg.org/download.html
-    #     Download and install 'ffmpeg' based on your operating system.
-    #
-    # Ensure 'ffmpeg' is in your system's PATH:
-    #     After installing 'ffmpeg,' make sure it's added to your system's PATH so that Python can locate it. If it's not in your PATH, you may encounter the "No such file or directory" error.
-    #
-    # Restart your Python environment:
-    #     If you installed 'ffmpeg' or modified your PATH settings, restart your Python environment (e.g., Jupyter Notebook, Python script, or IDE) to apply the changes.
-
-    # video = anim.to_html5_video()
-    # html = IPython.display.HTML(video)
-    # display(html)
-    # plt.close()
-
-    # display(IPython_display.display_animation(anim))
-
-    # Writer = animation.writers['ffmpeg']
-    # writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
-    # anim.save(animation_path, writer=writer)
-
     anim.save(animation_path, writer=FFMpegWriter(fps=10))
     return
 

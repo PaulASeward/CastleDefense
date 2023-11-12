@@ -1,8 +1,8 @@
 import pandas as pd
 import os
 
-seperated_data_path = os.path.join(os.getcwd(), '../tracking_data', 'seperated_data')
-tracking_data_path = os.path.join(os.getcwd(), '../tracking_data')
+seperated_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'tracking_data', 'seperated_data'))
+tracking_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'tracking_data'))
 
 def split_tracking_data():
     list_of_csvs = sorted([f for f in os.listdir(tracking_data_path) if f.endswith(".csv")])

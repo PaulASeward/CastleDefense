@@ -18,7 +18,8 @@ def load_play_data(play_id, game_id=2022090800, week=1):
 
     Example usage: play_data = load_play_data(12345, game_id=2022090801, week=2)
     """
-    data_path = os.path.join(os.getcwd(), '.', 'tracking_data', 'tracking_week_' + str(week) + '.csv')
+
+    data_path = os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'tracking_data')), 'tracking_week_' + str(week) + '.csv')
     week_df = pd.read_csv(data_path)
     play_df = week_df.query(f'gameId == {game_id} and playId == {play_id}')
     return play_df
@@ -67,10 +68,10 @@ def get_play_by_id(gameId, playId):
     :param playId:
     :return:
     """
-    path_to_plays = os.path.join(os.getcwd(), '.', 'overview_data', 'plays.csv')
+
+    path_to_plays = os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'overview_data')), 'plays.csv')
     plays_df = pd.read_csv(path_to_plays)
     play = plays_df[(plays_df['gameId'] == gameId) & (plays_df['playId'] == playId)]
-
     return play
 
 

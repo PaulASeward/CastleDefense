@@ -2,11 +2,9 @@ from CastleDefense.utils.extractPlayDataUtils import *
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib import animation
-from math import ceil
 import dateutil
 from matplotlib.animation import FFMpegWriter
 import warnings
-
 warnings.filterwarnings('ignore')
 
 # Constants for NFL field dimensions
@@ -70,7 +68,7 @@ def plot_endzones(ax):
     return ax
 
 
-def plot_hashmarks(ax, field_width, line_color='white'):
+def plot_hashmarks(ax, line_color='white'):
     """
     Generates and plots the x and y coordinates for the field hashmarks. Projects to the field width using next 10-yard line.
     Args:
@@ -175,19 +173,26 @@ def create_football_field(boxed_view=(0, 0, NFL_FIELD_WIDTH, NFL_FIELD_HEIGHT),
     return fig, ax
 
 
-def plot_tracked_movements(ht_df, at_df, ft_df, description=None):
+def plot_tracked_movements(ht_df, at_df, ft_df, description=None, zoomed_view=True):
     """
     Plots the tracked movements from available play data.
-    :param description: Description of the play
-    :param ht_df:
-    :param at_df:
-    :param ft_df:
+
     :return:
+
+    Args:
+        description: Description of the play
+        ht_df: Home team data frame
+        at_df: Away team data frame
+        ft_df: Football data frame
+        zoomed_view: Zooms in on the play
     """
     plt.close()
     play = get_play_by_id(ht_df['gameId'].iloc[0], ht_df['playId'].iloc[0])
+
     line_of_scrimmage, yards_to_go = get_los_details(play)
-    fig, ax = create_football_field(line_of_scrimmage=line_of_scrimmage, yards_to_go=yards_to_go)
+    boxed_view = get_player_max_locations(ht_df, at_df, ft_df) if zoomed_view else None
+
+    fig, ax = create_football_field(boxed_view=boxed_view, line_of_scrimmage=line_of_scrimmage, yards_to_go=yards_to_go)
 
     ht_name = ht_df['club'].iloc[0]
     at_name = at_df['club'].iloc[0]
@@ -248,7 +253,7 @@ def plot_play_tracked_movements(playId, gameId, week):
 ###################
 # Animating PLayers Movement: https://www.kaggle.com/code/ar2017/nfl-big-data-bowl-2021-animating-players-movement
 ###################
-def animate_player_movement(playId, gameId, weekNumber):
+def animate_player_movement(playId, gameId, weekNumber, zoomed_view=True):
     """
     Animates player movement for a specific play.
     :param weekNumber:
@@ -258,6 +263,8 @@ def animate_player_movement(playId, gameId, weekNumber):
     """
     play_df = load_play_data(playId, gameId, weekNumber)
     playHome, playAway, playFootball = load_teams_from_play(play_df)
+    boxed_view = get_player_max_locations(playHome, playAway, playFootball) if zoomed_view else None
+
     play = get_play_by_id(gameId, playId)
 
     playHome['time'] = playHome['time'].apply(lambda x: dateutil.parser.parse(x).timestamp()).rank(method='dense')
@@ -282,7 +289,8 @@ def animate_player_movement(playId, gameId, weekNumber):
     else:
         yardsToGo = yardsToGo
 
-    fig, ax = create_football_field(line_of_scrimmage=yardlineNumber, yards_to_go=yardsToGo)
+    fig, ax = create_football_field(boxed_view=boxed_view, line_of_scrimmage=yardlineNumber, yards_to_go=yardsToGo)
+
     playDesc = play['playDescription'].item()
     plt.title(f'Game # {gameId} Play # {playId} \n {playDesc}')
 
@@ -369,8 +377,8 @@ def save_animation(anim, animation_path):
 
 gameId, playId, week = 2022090800, 343, 1
 
-create_football_field(boxed_view=(0,0,80,NFL_FIELD_HEIGHT), line_of_scrimmage=10, yards_to_go=10)
-plt.show()
+# create_football_field(boxed_view=(0,0,80,NFL_FIELD_HEIGHT), line_of_scrimmage=10, yards_to_go=10)
+# plt.show()
 
 # plot_play_events(playId, gameId, week)
 # plot_play_tracked_movements(playId, gameId, week)

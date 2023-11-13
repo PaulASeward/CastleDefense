@@ -86,6 +86,27 @@ def get_los_details(play):
     return los, yards_to_go
 
 
+def get_player_max_locations(ht_df, at_df, ft_df, padding=5):
+    """
+    Calculates a tuple with the min and max x and y coordinates for a play.
+    Args:
+        ht_df: Home team DataFrame
+        at_df: Away team DataFrame
+        ft_df: Football DataFrame
+        padding: The amount of padding to add to the max and min coordinates
+
+    Returns: Tuple with the min and max x and y coordinates for the play
+
+    """
+    max_x = max(ht_df['x'].max(), at_df['x'].max(), ft_df['x'].max()) + padding
+    max_y = max(ht_df['y'].max(), at_df['y'].max(), ft_df['y'].max()) + padding
+    min_x = min(ht_df['x'].min(), at_df['x'].min(), ft_df['x'].min()) - padding
+    min_y = min(ht_df['y'].min(), at_df['y'].min(), ft_df['y'].min()) - padding
+
+    boxed_view_coordinates = (min_x, min_y, max_x, max_y)
+    return boxed_view_coordinates
+
+
 def calculate_dx_dy(x, y, angle, speed, multiplier):
     """
     Not sure if this is needed. Might be required for old data without this tracking

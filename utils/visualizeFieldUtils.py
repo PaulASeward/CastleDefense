@@ -112,7 +112,7 @@ def plot_linenumbers(ax, line_color='white'):
     return ax
 
 
-def create_football_field(boxed_view=(0, 0, NFL_FIELD_WIDTH, NFL_FIELD_HEIGHT),
+def create_football_field(boxed_view=None,
                           line_of_scrimmage=None,
                           yards_to_go=None,
                           v_padding=0,
@@ -133,6 +133,9 @@ def create_football_field(boxed_view=(0, 0, NFL_FIELD_WIDTH, NFL_FIELD_HEIGHT),
     Returns:
 
     """
+    if boxed_view is None:
+        boxed_view = (0, 0, NFL_FIELD_WIDTH, NFL_FIELD_HEIGHT)
+
     x_max = max(10.0, min(NFL_FIELD_WIDTH, boxed_view[2]))  # clipping 10 < field_width < 120
     y_max = max(10.0, min(NFL_FIELD_HEIGHT, boxed_view[3]))  # clipping 10 < field_height < 53.3
     x_min = min(x_max-10.0, max(0, boxed_view[0]))
@@ -214,7 +217,7 @@ def plot_tracked_movements(ht_df, at_df, ft_df, description=None, zoomed_view=Tr
     plt.show()
 
 
-def plot_play_events(playId, gameId, week):
+def plot_play_events(playId, gameId, week, zoomed_view=False):
     """
     Plots all events for a single play.
     :param playId:
@@ -233,10 +236,10 @@ def plot_play_events(playId, gameId, week):
         at = team_2[team_2['event'] == event]
         ft = football[football['event'] == event]
 
-        plot_tracked_movements(ht, at, ft, event)
+        plot_tracked_movements(ht, at, ft, event, zoomed_view)
 
 
-def plot_play_tracked_movements(playId, gameId, week):
+def plot_play_tracked_movements(playId, gameId, week, zoomed_view=False):
     """
     Plots the tracked movements for a single play.
     :param playId:
@@ -247,13 +250,13 @@ def plot_play_tracked_movements(playId, gameId, week):
     play_df = load_play_data(playId, gameId, week)
     team_1, team_2, football = load_teams_from_play(play_df)
 
-    plot_tracked_movements(team_1, team_2, football)
+    plot_tracked_movements(team_1, team_2, football, zoomed_view=zoomed_view)
 
 
 ###################
 # Animating PLayers Movement: https://www.kaggle.com/code/ar2017/nfl-big-data-bowl-2021-animating-players-movement
 ###################
-def animate_player_movement(playId, gameId, weekNumber, zoomed_view=True):
+def animate_player_movement(playId, gameId, weekNumber, zoomed_view=False):
     """
     Animates player movement for a specific play.
     :param weekNumber:
@@ -380,7 +383,7 @@ gameId, playId, week = 2022090800, 343, 1
 # create_football_field(boxed_view=(0,0,80,NFL_FIELD_HEIGHT), line_of_scrimmage=10, yards_to_go=10)
 # plt.show()
 
-# plot_play_events(playId, gameId, week)
+# # plot_play_events(playId, gameId, week)
 # plot_play_tracked_movements(playId, gameId, week)
 
 # anim = animate_player_movement(gameId=gameId, playId=playId, weekNumber=week)

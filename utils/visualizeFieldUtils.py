@@ -1,5 +1,3 @@
-import os.path
-
 from CastleDefense.utils.extractPlayDataUtils import *
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -11,21 +9,25 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
+# Constants for NFL field dimensions
+NFL_FIELD_HEIGHT = 53.3
+NFL_FIELD_WIDTH = 120
 
-def plot_field_lines(ax, field_width, line_color='white'):
+
+def plot_field_lines(ax, line_color='white'):
     """
     Generates the x and y coordinates for the field lines. Projects to the field width using next 10-yard line.
     Args:
         line_color: Color of the field lines, default white
         ax: Subplot to plot on
-        field_width: Must be in increments of 10
 
     Returns:
     """
+    field_width = NFL_FIELD_WIDTH
     x_coord_lines = [10]
     y_coord_lines = [0]
 
-    for i in range(10, field_width, 10):
+    for i in range(10, int(field_width), 10):
         x_coord_lines.extend([i, i])
         i_base_10 = i // 10
 
@@ -41,13 +43,14 @@ def plot_field_lines(ax, field_width, line_color='white'):
     return ax.plot(x_coord_lines, y_coord_lines, color=line_color)
 
 
-def plot_endzones(ax, field_width):
+def plot_endzones(ax):
     """
     Generates and plots the x and y coordinates for the field endzones. Projects to the field width using next 10-yard line.
     Args:
         ax: subplot to plot on
-        field_width: Must be in increments of 10
     """
+    field_width = NFL_FIELD_WIDTH
+
     endzone_left = patches.Rectangle((0, 0), 10, NFL_FIELD_HEIGHT,
                                      linewidth=0.1,
                                      edgecolor='r',
@@ -73,9 +76,9 @@ def plot_hashmarks(ax, field_width, line_color='white'):
     Args:
         line_color: default white
         ax: subplot to plot on
-        field_width: Must be in increments of 10
     """
-    hash_range = range(11, field_width - 10) if field_width == 120 else range(11, field_width)
+    field_width = NFL_FIELD_WIDTH
+    hash_range = range(11, int(field_width) - 10) if field_width == 120 else range(11, int(field_width))
 
     for x in hash_range:
         # At each eligible yard line, plot hash marks going vertically up the field.
@@ -86,15 +89,16 @@ def plot_hashmarks(ax, field_width, line_color='white'):
     return ax
 
 
-def plot_linenumbers(ax, field_width, line_color='white'):
+def plot_linenumbers(ax, line_color='white'):
     """
     Generates and plots the x and y coordinates for the field line numbers. Projects to the field width using next 10-yard line.
     Args:
         line_color: default white
         ax: subplot to plot on
-        field_width: Must be in increments of 10
     """
-    right_end_of_field = 110 if field_width == 120 else field_width
+    field_width = NFL_FIELD_WIDTH
+    right_end_of_field = 110 if field_width == 120 else int(field_width)
+
     for x in range(20, right_end_of_field, 10):
         line_numb = x - 10
         if line_numb > 50:  # Past midfield (50 yd line: x=60), numbers are offset from 100
@@ -110,47 +114,54 @@ def plot_linenumbers(ax, field_width, line_color='white'):
     return ax
 
 
-NFL_FIELD_HEIGHT = 53.3
-NFL_FIELD_WIDTH = 120
-
-
-def create_football_field(field_width=120,  # Customize field width
+def create_football_field(boxed_view=(0, 0, NFL_FIELD_WIDTH, NFL_FIELD_HEIGHT),
                           line_of_scrimmage=None,
                           yards_to_go=None,
-                          vertical_padding=0,
-                          horizontal_padding=0,
+                          v_padding=0,
+                          h_padding=0,
                           field_color='darkgreen',
                           line_color='white'):
     """
-    Function that plots the football field for viewing plays.
-    """
-    field_width = max(10, min(120, field_width))  # clipping 10 < field_width < 120
-    field_width = (ceil(field_width / 10)) * 10  # rounding up to nearest 10
+    Creates a football field using matplotlib patches.
+    Args:
+        boxed_view: 4 tuple for the coordinate bounds of the field being displayed. Default is full view
+        line_of_scrimmage: Providing a line of scrimmage will display a line of scrimmage marker
+        yards_to_go: Yards to next 1st down marker. Will display a line for the yards to go
+        v_padding: Adds vertical padding to the view
+        h_padding: Adds horizontal padding to the view
+        field_color: Default darkgreen
+        line_color: Default white
 
-    figsize = (field_width / 10, 63.3 / 10)
+    Returns:
+
+    """
+    x_max = max(10.0, min(NFL_FIELD_WIDTH, boxed_view[2]))  # clipping 10 < field_width < 120
+    y_max = max(10.0, min(NFL_FIELD_HEIGHT, boxed_view[3]))  # clipping 10 < field_height < 53.3
+    x_min = min(x_max-10.0, max(0, boxed_view[0]))
+    y_min = min(y_max-10.0, max(0, boxed_view[1]))
+    field_height = y_max - y_min
+    field_width = x_max - x_min
+
+    figsize = (field_width / 10, (field_height + 10) / 10)  # Allow larger vertical spacing for titles in figure
     fig, ax = plt.subplots(1, figsize=figsize)
 
-    padded_field_boundary = patches.Rectangle((-horizontal_padding, -vertical_padding),
-                                              field_width + 2 * horizontal_padding,
-                                              NFL_FIELD_HEIGHT + 2 * vertical_padding, linewidth=0.1,
+    padded_field_boundary = patches.Rectangle((x_min-h_padding, y_min-v_padding),
+                                              field_width + (2*h_padding), field_height + (2*v_padding), linewidth=0.1,
                                               edgecolor='r', facecolor='lightgreen', alpha=0.2, zorder=0)
 
-    out_of_bounds_boundary = patches.Rectangle((0, 0), field_width, NFL_FIELD_HEIGHT, linewidth=0.1,
-                                               edgecolor='r', facecolor=field_color, zorder=0)
+    out_of_bounds_boundary = patches.Rectangle((x_min, y_min), field_width, field_height,
+                                               linewidth=0.1, edgecolor='r', facecolor=field_color, zorder=0)
     ax.add_patch(padded_field_boundary)
     ax.add_patch(out_of_bounds_boundary)
 
-    plt.xlim(-horizontal_padding, field_width + horizontal_padding)
-    plt.ylim(-vertical_padding, NFL_FIELD_HEIGHT + vertical_padding)
+    plt.xlim(x_min - h_padding, x_max + h_padding)
+    plt.ylim(y_min - v_padding, y_max + v_padding)
     plt.axis('off')
 
-    plot_field_lines(ax, field_width, line_color=line_color)
-
-    plot_endzones(ax, field_width)
-
-    plot_linenumbers(ax, field_width, line_color=line_color)
-
-    plot_hashmarks(ax, field_width, line_color=line_color)
+    plot_field_lines(ax, line_color=line_color)
+    plot_endzones(ax)
+    plot_linenumbers(ax, line_color=line_color)
+    plot_hashmarks(ax, line_color=line_color)
 
     if line_of_scrimmage:
         hl = line_of_scrimmage + 10
@@ -356,13 +367,13 @@ def save_animation(anim, animation_path):
     return
 
 
-# gameId, playId, week = 2022090800, 343, 1
+gameId, playId, week = 2022090800, 343, 1
 
-create_football_field(field_width=120, line_of_scrimmage=10, yards_to_go=10)
+create_football_field(boxed_view=(0,0,80,NFL_FIELD_HEIGHT), line_of_scrimmage=10, yards_to_go=10)
 plt.show()
 
 # plot_play_events(playId, gameId, week)
-# # plot_play_tracked_movements(playId, gameId, week)
+# plot_play_tracked_movements(playId, gameId, week)
 
 # anim = animate_player_movement(gameId=gameId, playId=playId, weekNumber=week)
 # save_animation(anim, 'animate.mp4')

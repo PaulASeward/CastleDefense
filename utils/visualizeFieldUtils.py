@@ -1,4 +1,4 @@
-from CastleDefense.utils.extractPlayDataUtils import *
+from utils.extractPlayDataUtils import *
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib import animation
@@ -8,9 +8,9 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Constants for NFL field dimensions
-NFL_FIELD_HEIGHT = 53.3
-NFL_FIELD_WIDTH = 120
 
+NFL_FIELD_HEIGHT = 120
+NFL_FIELD_WIDTH = 53.3
 
 def plot_field_lines(ax, line_color='white'):
     """
@@ -21,22 +21,21 @@ def plot_field_lines(ax, line_color='white'):
 
     Returns:
     """
-    field_width = NFL_FIELD_WIDTH
-    x_coord_lines = [10]
-    y_coord_lines = [0]
+    field_height = NFL_FIELD_HEIGHT  # need to rename the field_width variable done
+    x_coord_lines = [0]
+    y_coord_lines = [10]
 
-    for i in range(10, int(field_width), 10):
-        x_coord_lines.extend([i, i])
+    for i in range(10, int(field_height), 10):
+        y_coord_lines.extend([i, i])
         i_base_10 = i // 10
 
         if i_base_10 % 2 != 0:  # Check if i_base_10 is odd
-            y_coord_lines.extend([0, NFL_FIELD_HEIGHT])
+            x_coord_lines.extend([NFL_FIELD_WIDTH, 0])
         else:
-            y_coord_lines.extend([NFL_FIELD_HEIGHT, 0])
-
-    x_coord_lines.extend([field_width, 0, 0, field_width, field_width])
-    y_coord_lines.extend(
-        [y_coord_lines[-1], y_coord_lines[-1], y_coord_lines[-2], y_coord_lines[-2], y_coord_lines[-1]])
+            x_coord_lines.extend([0, NFL_FIELD_WIDTH])
+    y_coord_lines.extend([field_height, 0, 0, field_height, field_height])
+    x_coord_lines.extend(
+        [x_coord_lines[-1], x_coord_lines[-1], x_coord_lines[-2], x_coord_lines[-2], x_coord_lines[-1]])
 
     return ax.plot(x_coord_lines, y_coord_lines, color=line_color)
 
@@ -47,24 +46,24 @@ def plot_endzones(ax):
     Args:
         ax: subplot to plot on
     """
-    field_width = NFL_FIELD_WIDTH
-
-    endzone_left = patches.Rectangle((0, 0), 10, NFL_FIELD_HEIGHT,
+    field_height = NFL_FIELD_HEIGHT
+    # coloring not the lines
+    endzone_bottom = patches.Rectangle((0, 0), NFL_FIELD_WIDTH, 10,
                                      linewidth=0.1,
                                      edgecolor='r',
                                      facecolor='blue',
                                      alpha=0.2,
                                      zorder=0)
-    ax.add_patch(endzone_left)
+    ax.add_patch(endzone_bottom)
 
-    if field_width == 120:
-        endzone_right = patches.Rectangle((110, 0), 10, NFL_FIELD_HEIGHT,
+    if field_height == 120:
+        endzone_top = patches.Rectangle((0, 110), NFL_FIELD_WIDTH, 10,
                                           linewidth=0.1,
                                           edgecolor='r',
                                           facecolor='blue',
                                           alpha=0.2,
                                           zorder=0)
-        ax.add_patch(endzone_right)
+        ax.add_patch(endzone_top)
     return ax
 
 
@@ -75,15 +74,15 @@ def plot_hashmarks(ax, line_color='white'):
         line_color: default white
         ax: subplot to plot on
     """
-    field_width = NFL_FIELD_WIDTH
-    hash_range = range(11, int(field_width) - 10) if field_width == 120 else range(11, int(field_width))
+    field_height = NFL_FIELD_HEIGHT
+    hash_range = range(11, int(field_height) - 10) if field_height == 120 else range(11, int(field_height))
 
     for x in hash_range:
         # At each eligible yard line, plot hash marks going vertically up the field.
-        ax.plot([x, x], [0.4, 0.7], color=line_color)
-        ax.plot([x, x], [53.0, 52.5], color=line_color)
-        ax.plot([x, x], [22.91, 23.57], color=line_color)
-        ax.plot([x, x], [29.73, 30.39], color=line_color)
+        ax.plot([0.4, 0.7], [x, x], color=line_color)
+        ax.plot([53.0, 52.5], [x, x], color=line_color)
+        ax.plot([22.91, 23.57], [x, x], color=line_color)
+        ax.plot([29.73, 30.39], [x, x], color=line_color)
     return ax
 
 
@@ -94,29 +93,29 @@ def plot_linenumbers(ax, line_color='white'):
         line_color: default white
         ax: subplot to plot on
     """
-    field_width = NFL_FIELD_WIDTH
-    right_end_of_field = 110 if field_width == 120 else int(field_width)
-
-    for x in range(20, right_end_of_field, 10):
+    field_height = NFL_FIELD_HEIGHT
+    top_of_field = 110 if field_height == 120 else int(field_height)
+    # Following loop creates line numbering.
+    for x in range(20, top_of_field, 10):
         line_numb = x - 10
         if line_numb > 50:  # Past midfield (50 yd line: x=60), numbers are offset from 100
             line_numb = 100 - line_numb
-        ax.text(x, 5, str(line_numb),
+        ax.text(5, x - 1.85, str(line_numb),
                 horizontalalignment='center',
                 fontsize=20,  # fontname='Arial',
-                color=line_color)
-        ax.text(x - 0.95, NFL_FIELD_HEIGHT - 5, str(line_numb),
+                color=line_color, rotation=270)
+        ax.text(NFL_FIELD_WIDTH - 5, x - 0.95, str(line_numb),
                 horizontalalignment='center',
                 fontsize=20,  # fontname='Arial',
-                color=line_color, rotation=180)
+                color=line_color, rotation=90)
     return ax
 
 
 def create_football_field(boxed_view=None,
                           line_of_scrimmage=None,
                           yards_to_go=None,
-                          v_padding=0,
-                          h_padding=0,
+                          v_padding=10,
+                          h_padding=10,
                           field_color='darkgreen',
                           line_color='white'):
     """
@@ -148,7 +147,7 @@ def create_football_field(boxed_view=None,
 
     padded_field_boundary = patches.Rectangle((x_min-h_padding, y_min-v_padding),
                                               field_width + (2*h_padding), field_height + (2*v_padding), linewidth=0.1,
-                                              edgecolor='r', facecolor='lightgreen', alpha=0.2, zorder=0)
+                                              edgecolor='r', facecolor='darkblue', alpha=0.2, zorder=0)
 
     out_of_bounds_boundary = patches.Rectangle((x_min, y_min), field_width, field_height,
                                                linewidth=0.1, edgecolor='r', facecolor=field_color, zorder=0)
@@ -166,12 +165,12 @@ def create_football_field(boxed_view=None,
 
     if line_of_scrimmage:
         hl = line_of_scrimmage + 10
-        ax.plot([hl, hl], [0, NFL_FIELD_HEIGHT], color='yellow')
+        ax.plot([NFL_FIELD_WIDTH, 0], [hl, hl], color='yellow')
         ax.text(hl - 8, NFL_FIELD_HEIGHT - 3, 'L.O.S. ->', fontsize=10, color='yellow')
 
     if yards_to_go and line_of_scrimmage:
         fl = line_of_scrimmage + 10 + yards_to_go
-        ax.plot([fl, fl], [0, NFL_FIELD_HEIGHT], color='yellow')
+        ax.plot([0, NFL_FIELD_WIDTH], [fl, fl], color='yellow')
 
     return fig, ax
 
@@ -195,14 +194,14 @@ def plot_tracked_movements(ht_df, at_df, ft_df, description=None, zoomed_view=Tr
     line_of_scrimmage, yards_to_go = get_los_details(play)
     boxed_view = get_player_max_locations(ht_df, at_df, ft_df) if zoomed_view else None
 
-    fig, ax = create_football_field(boxed_view=boxed_view, line_of_scrimmage=line_of_scrimmage, yards_to_go=yards_to_go, field_color='white', line_color='black')
+    fig, ax = create_football_field(boxed_view=boxed_view, line_of_scrimmage=line_of_scrimmage, yards_to_go=yards_to_go, field_color='darkgreen', line_color='white')
 
     ht_name = ht_df['club'].iloc[0]
     at_name = at_df['club'].iloc[0]
 
-    ht_df.plot(x='x', y='y', kind='scatter', ax=ax, color='orange', s=30, label=ht_name)
-    at_df.plot(x='x', y='y', kind='scatter', ax=ax, color='blue', s=30, label=at_name)
-    ft_df.plot(x='x', y='y', kind='scatter', ax=ax, color='brown', s=30, label='football')
+    ht_df.plot(x='y', y='x', kind='scatter', ax=ax, color='orange', s=30, label=ht_name)
+    at_df.plot(x='y', y='x', kind='scatter', ax=ax, color='blue', s=30, label=at_name)
+    ft_df.plot(x='y', y='x', kind='scatter', ax=ax, color='brown', s=30, label='football')
 
     if plot_blockers:
         plot_blocking_formation(ax, ht_df, 'red')
@@ -265,7 +264,7 @@ def plot_blocking_formation(ax, ht_df, line_color):
         next_blocker = blocker_df.iloc[i + 1]
 
         if next_blocker is not None:
-            ax.plot([blocker['x'], next_blocker['x']], [blocker['y'], next_blocker['y']], color=line_color)
+            ax.plot([blocker['y'], next_blocker['y']], [blocker['x'], next_blocker['x']], color=line_color)
 
     return ax
 

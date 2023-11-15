@@ -75,6 +75,18 @@ def get_play_by_id(gameId, playId):
     return play
 
 
+def get_players_by_ids(player_ids):
+    """
+    Returns a DataFrame with player information given a list of player ids.
+    Args:
+        player_ids: List of player ids
+    """
+    path_to_players = os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'overview_data')), 'players.csv')
+    players_df = pd.read_csv(path_to_players)
+    player_ids_df = players_df[(players_df['nflId'].isin(player_ids))]
+    return player_ids_df
+
+
 def get_los_details(play):
     """
     Extracts the line of scrimmage and yards to go from a play DataFrame.
@@ -105,6 +117,14 @@ def get_player_max_locations(ht_df, at_df, ft_df, padding=5):
 
     boxed_view_coordinates = (min_x, min_y, max_x, max_y)
     return boxed_view_coordinates
+
+
+def get_blocking_players(ht_df):
+    offense_player_ids = ht_df['nflId'].unique()
+    players_df = get_players_by_ids(offense_player_ids)
+    blocking_players_df = players_df[players_df['position'].isin(['TE', 'G', 'C', 'T'])]
+    blocking_player_df = ht_df[ht_df['nflId'].isin(blocking_players_df['nflId'])]
+    return blocking_player_df
 
 
 def calculate_dx_dy(x, y, angle, speed, multiplier):

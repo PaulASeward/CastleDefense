@@ -176,7 +176,7 @@ def create_football_field(boxed_view=None,
     return fig, ax
 
 
-def plot_tracked_movements(ht_df, at_df, ft_df, description=None, zoomed_view=True):
+def plot_tracked_movements(ht_df, at_df, ft_df, description=None, zoomed_view=True, plot_blockers=False):
     """
     Plots the tracked movements from available play data.
 
@@ -195,7 +195,7 @@ def plot_tracked_movements(ht_df, at_df, ft_df, description=None, zoomed_view=Tr
     line_of_scrimmage, yards_to_go = get_los_details(play)
     boxed_view = get_player_max_locations(ht_df, at_df, ft_df) if zoomed_view else None
 
-    fig, ax = create_football_field(boxed_view=boxed_view, line_of_scrimmage=line_of_scrimmage, yards_to_go=yards_to_go)
+    fig, ax = create_football_field(boxed_view=boxed_view, line_of_scrimmage=line_of_scrimmage, yards_to_go=yards_to_go, field_color='white', line_color='black')
 
     ht_name = ht_df['club'].iloc[0]
     at_name = at_df['club'].iloc[0]
@@ -203,6 +203,9 @@ def plot_tracked_movements(ht_df, at_df, ft_df, description=None, zoomed_view=Tr
     ht_df.plot(x='x', y='y', kind='scatter', ax=ax, color='orange', s=30, label=ht_name)
     at_df.plot(x='x', y='y', kind='scatter', ax=ax, color='blue', s=30, label=at_name)
     ft_df.plot(x='x', y='y', kind='scatter', ax=ax, color='brown', s=30, label='football')
+
+    if plot_blockers:
+        plot_blocking_formation(ax, ht_df, 'red')
 
     gameId = ht_df['gameId'].iloc[0]
     playId = ht_df['playId'].iloc[0]
@@ -217,7 +220,7 @@ def plot_tracked_movements(ht_df, at_df, ft_df, description=None, zoomed_view=Tr
     plt.show()
 
 
-def plot_play_events(playId, gameId, week, zoomed_view=False):
+def plot_play_events(playId, gameId, week, zoomed_view=False, plot_blockers=False):
     """
     Plots all events for a single play.
     :param playId:
@@ -236,7 +239,7 @@ def plot_play_events(playId, gameId, week, zoomed_view=False):
         at = team_2[team_2['event'] == event]
         ft = football[football['event'] == event]
 
-        plot_tracked_movements(ht, at, ft, event, zoomed_view)
+        plot_tracked_movements(ht, at, ft, description=event, zoomed_view=zoomed_view, plot_blockers=plot_blockers)
 
 
 def plot_play_tracked_movements(playId, gameId, week, zoomed_view=False):
@@ -252,6 +255,19 @@ def plot_play_tracked_movements(playId, gameId, week, zoomed_view=False):
 
     plot_tracked_movements(team_1, team_2, football, zoomed_view=zoomed_view)
 
+
+def plot_blocking_formation(ax, ht_df, line_color):
+    blocker_df = get_blocking_players(ht_df)
+    blocker_df = blocker_df.sort_values(by=['y'], ascending=[True])
+
+    for i in range(len(blocker_df) - 1):
+        blocker = blocker_df.iloc[i]
+        next_blocker = blocker_df.iloc[i + 1]
+
+        if next_blocker is not None:
+            ax.plot([blocker['x'], next_blocker['x']], [blocker['y'], next_blocker['y']], color=line_color)
+
+    return ax
 
 ###################
 # Animating PLayers Movement: https://www.kaggle.com/code/ar2017/nfl-big-data-bowl-2021-animating-players-movement
@@ -383,7 +399,7 @@ gameId, playId, week = 2022090800, 343, 1
 # create_football_field(boxed_view=(0,0,80,NFL_FIELD_HEIGHT), line_of_scrimmage=10, yards_to_go=10)
 # plt.show()
 
-# # plot_play_events(playId, gameId, week)
+plot_play_events(playId, gameId, week, plot_blockers=True)
 # plot_play_tracked_movements(playId, gameId, week)
 
 # anim = animate_player_movement(gameId=gameId, playId=playId, weekNumber=week)

@@ -277,58 +277,104 @@ def plot_blocking_formation(ax, blocker_df, line_color):
 def update_animation(ax, time, offense, defense, football):
     patch = []
 
-    # Home players' location
-    homeX = offense.query('time == ' + str(time))['x']
-    homeY = offense.query('time == ' + str(time))['y']
-    homeNum = offense.query('time == ' + str(time))['jerseyNumber']
-    homeOrient = offense.query('time == ' + str(time))['o']
-    homeDir = offense.query('time == ' + str(time))['dir']
-    homeSpeed = offense.query('time == ' + str(time))['s']
-    patch.extend(ax.plot(homeX, homeY, 'o', c='gold', ms=20, mec='white'))
+    # Query once for each team and football
+    home_data = offense.query('time == ' + str(time))
+    away_data = defense.query('time == ' + str(time))
+    football_data = football.query('time == ' + str(time))
 
-    for x, y, num, orient, direction, speed in zip(homeX, homeY, homeNum, homeOrient, homeDir, homeSpeed):
+    # # Home players' location
+    patch.extend(ax.plot(home_data['x'], home_data['y'], 'o', c='gold', ms=20, mec='white'))
+
+    for _, player in home_data.iterrows():
         # Home players' jersey number
-        patch.append(ax.text(x, y, int(num), va='center', ha='center', color='black', size='small'))
+        jersey_number_text = ax.text(player['x'], player['y'], int(player['jerseyNumber']), va='center', ha='center',
+                                     color='black',  size='small')
 
-        # Home players' orientation
-        dx, dy = calculate_dx_dy(x, y, orient, 1, 1)
-        patch.append(ax.arrow(x, y, dx, dy, color='gold', width=0.5, shape='full'))
+        # Rotate the text based on player's orientation
+        home_orientation = player['o'] if home_data['playDirection'].iloc[0] == 'left' else player['o'] + 180
+        jersey_number_text.set_rotation(home_orientation)
+        patch.append(jersey_number_text)
 
         # Home players' direction
-        dx, dy = calculate_dx_dy(x, y, direction, speed, 1)
-        patch.append(ax.arrow(x, y, dx, dy, color='black', width=0.25, shape='full'))
+        dx, dy = calculate_dx_dy(player['x'], player['y'], player['dir'], player['s'], 1)
+        patch.append(ax.arrow(player['x'], player['y'], dx, dy, color='black', width=0.25, shape='full'))
 
     # Away players' location
-    awayX = defense.query('time == ' + str(time))['x']
-    awayY = defense.query('time == ' + str(time))['y']
-    awayNum = defense.query('time == ' + str(time))['jerseyNumber']
-    awayOrient = defense.query('time == ' + str(time))['o']
-    awayDir = defense.query('time == ' + str(time))['dir']
-    awaySpeed = defense.query('time == ' + str(time))['s']
-    patch.extend(plt.plot(awayX, awayY, 'o', c='orangered', ms=20, mec='white'))
+    patch.extend(ax.plot(away_data['x'], away_data['y'], 'o', c='orangered', ms=20, mec='white'))
 
-    # Away players' jersey number
-    for x, y, num in zip(awayX, awayY, awayNum):
-        patch.append(plt.text(x, y, int(num), va='center', ha='center', color='white', size='small'))
+    for _, player in away_data.iterrows():
+        # Away players' jersey number
+        jersey_number_text = ax.text(player['x'], player['y'], int(player['jerseyNumber']), va='center', ha='center',
+                                     color='black', size='small')
 
-    # # Away players' orientation
-    # for x, y, orient in zip(awayX, awayY, awayOrient):
-    #     dx, dy = calculate_dx_dy(x, y, orient, 1, 1)
-    #     patch.append(ax.arrow(x, y, dx, dy, color='orangered', width=0.5, shape='full'))
-    #
-    # # Away players' direction
-    # for x, y, direction, speed in zip(awayX, awayY, awayDir, awaySpeed):
-    #     dx, dy = calculate_dx_dy(x, y, direction, speed, 1)
-    #     patch.append(ax.arrow(x, y, dx, dy, color='black', width=0.25, shape='full'))
+        # Rotate the text based on player's orientation
+        away_orientation = player['o'] if away_data['playDirection'].iloc[0] == 'left' else player['o'] + 180
+        jersey_number_text.set_rotation(away_orientation)
+        patch.append(jersey_number_text)
+
+        # Away players' direction
+        dx, dy = calculate_dx_dy(player['x'], player['y'], player['dir'], player['s'], 1)
+        patch.append(ax.arrow(player['x'], player['y'], dx, dy, color='black', width=0.25, shape='full'))
 
     # Footballs' location
-    football_data = football.query('time == ' + str(time))['club']
-    footballX = football.query('time == ' + str(time))['x']
-    footballY = football.query('time == ' + str(time))['y']
-    patch.extend(ax.plot(footballX, footballY, 'o', c='black', ms=10, mec='white',
-                         data=football_data))
+    patch.extend(ax.plot(football_data['x'], football_data['y'], 'o', c='black', ms=10, mec='white',
+                         data=football_data['club']))
 
     return patch
+#
+# def update_animation(ax, time, offense, defense, football):
+#     patch = []
+#
+#     # Home players' location
+#     homeX = offense.query('time == ' + str(time))['x']
+#     homeY = offense.query('time == ' + str(time))['y']
+#     homeNum = offense.query('time == ' + str(time))['jerseyNumber']
+#     homeOrient = offense.query('time == ' + str(time))['o']
+#     homeDir = offense.query('time == ' + str(time))['dir']
+#     homeSpeed = offense.query('time == ' + str(time))['s']
+#     patch.extend(ax.plot(homeX, homeY, 'o', c='gold', ms=20, mec='white'))
+#
+#     for x, y, num, orient, direction, speed in zip(homeX, homeY, homeNum, homeOrient, homeDir, homeSpeed):
+#         # Home players' jersey number
+#         patch.append(ax.text(x, y, int(num), va='center', ha='center', color='black', size='small'))
+#
+#         # Home players' orientation
+#         dx, dy = calculate_dx_dy(x, y, orient, 1, 1)
+#         patch.append(ax.arrow(x, y, dx, dy, color='gold', width=0.5, shape='full'))
+#
+#         # Home players' direction
+#         dx, dy = calculate_dx_dy(x, y, direction, speed, 1)
+#         patch.append(ax.arrow(x, y, dx, dy, color='black', width=0.25, shape='full'))
+#
+#     # Away players' location
+#     awayX = defense.query('time == ' + str(time))['x']
+#     awayY = defense.query('time == ' + str(time))['y']
+#     awayNum = defense.query('time == ' + str(time))['jerseyNumber']
+#     awayOrient = defense.query('time == ' + str(time))['o']
+#     awayDir = defense.query('time == ' + str(time))['dir']
+#     awaySpeed = defense.query('time == ' + str(time))['s']
+#     patch.extend(plt.plot(awayX, awayY, 'o', c='orangered', ms=20, mec='white'))
+#
+#     for x, y, num, orient, direction, speed in zip(awayX, awayY, awayNum, awayOrient, awayDir, awaySpeed):
+#         # Away players' jersey number
+#         patch.append(plt.text(x, y, int(num), va='center', ha='center', color='white', size='small'))
+#
+#         # Away players' orientation
+#         dx, dy = calculate_dx_dy(x, y, orient, 1, 1)
+#         patch.append(ax.arrow(x, y, dx, dy, color='orangered', width=0.5, shape='full'))
+#
+#         # Away players' direction
+#         dx, dy = calculate_dx_dy(x, y, direction, speed, 1)
+#         patch.append(ax.arrow(x, y, dx, dy, color='black', width=0.25, shape='full'))
+#
+#     # Footballs' location
+#     football_data = football.query('time == ' + str(time))['club']
+#     footballX = football.query('time == ' + str(time))['x']
+#     footballY = football.query('time == ' + str(time))['y']
+#     patch.extend(ax.plot(footballX, footballY, 'o', c='black', ms=10, mec='white',
+#                          data=football_data))
+#
+#     return patch
 
 
 def animate_player_movement(playId, gameId, weekNumber, zoomed_view=False):

@@ -4,7 +4,24 @@ import numpy as np
 from math import radians
 
 
-def load_play_data(play_id, game_id=2022090800, week=1):
+def load_play(playId, gameId, week=1):
+    """
+    Uses facade method to call other loading methods for a play
+    Args:
+        playId:
+        gameId:
+        week:
+
+    Returns: offense, defense and football dataframes, sorted by time ascending
+
+    """
+    play = get_play_by_id(gameId, playId)
+    play_df = load_play_data(playId, gameId, week)
+    offense, defense, football = load_teams_from_play(play_df, play, gameId)
+    return offense, defense, football
+
+
+def load_play_data(play_id, game_id, week=1):
     """
     Loads tracking data for a specific play.
 
@@ -25,7 +42,36 @@ def load_play_data(play_id, game_id=2022090800, week=1):
     return play_df
 
 
-def load_teams_from_play(play_df):
+def load_all_plays_by_game(game_id, week):
+    """
+    Loads tracking data for all plays in a game.
+    Args:
+        game_id:
+    Returns:
+        pandas.DataFrame: Tracking data for the plays.
+    """
+    data_path = os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'tracking_data')), 'tracking_week_' + str(week) + '.csv')
+    week_df = pd.read_csv(data_path)
+    plays_df = week_df.query(f'gameId == {game_id}')
+    return plays_df
+
+
+def load_game(game_id):
+    """
+    Loads the game row from games.csv
+    Args:
+        game_id:
+    Returns:
+        pandas.DataFrame: Information on the game specified
+
+    """
+    path_to_games = os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'overview_data')), 'games.csv')
+    games_df = pd.read_csv(path_to_games)
+    game_df = games_df.query(f'gameId == {game_id}')
+    return game_df
+
+
+def load_teams_from_play(play_df, play, gameId):
     """
     Extracts team data from a play DataFrame.
 
@@ -40,24 +86,25 @@ def load_teams_from_play(play_df):
 
     Note: Assumes non-null team names and 'football' label in the 'club' column.
     """
-    teams = play_df['club'].unique()
-    teams = [team for team in teams if not pd.isna(team)]
+    game = load_game(gameId)
 
-    football = play_df[play_df['club'] == 'football']
-    teams = [play_df[play_df['club'] == team] for team in teams if team != 'football']
+    home_team = game['homeTeamAbbr'].iloc[0]
+    away_team = game['visitorTeamAbbr'].iloc[0]
+    offense_team = play['possessionTeam'].iloc[0]
+    defense_team = play['defensiveTeam'].iloc[0]
 
-    if len(teams) != 2:
-        print(f'Error: {len(teams)} teams found for play')
-        return
+    ft_df = play_df[play_df['club'] == 'football']
+    off_df = play_df[play_df['club'] == offense_team]
+    def_df = play_df[play_df['club'] == defense_team]
 
-    team_1 = teams[0]
-    team_2 = teams[1]
+    # Sort teams by timesteps:
+    ft_df = ft_df.sort_values(by='frameId', ascending=True)
+    off_df = off_df.sort_values(by='frameId', ascending=True)
+    def_df = def_df.sort_values(by='frameId', ascending=True)
 
-    ##  TODO: Add Helper method to use here to sequentially order by timestep. Animation functions already have own implementation of this that triggers warnings
+    #  TODO: Add Helper method to use here so all plays are facing the same direction (Left to Right)
 
-    ##  TODO: Add Helper method to use here so all plays are facing the same direction (Left to Right)
-
-    return team_1, team_2, football
+    return off_df, def_df, ft_df
 
 
 def get_play_by_id(gameId, playId):
@@ -86,8 +133,7 @@ def get_players_by_ids(player_ids):
     player_ids_df = players_df[(players_df['nflId'].isin(player_ids))]
     return player_ids_df
 
-
-def get_los_details(play):
+def get_los_details(play, play_df):
     """
     Extracts the line of scrimmage and yards to go from a play DataFrame.
     :param play:
@@ -95,6 +141,19 @@ def get_los_details(play):
     """
     los = play['yardlineNumber'].iloc[0]
     yards_to_go = play['yardsToGo'].iloc[0]
+
+    absoluteYardlineNumber = play['absoluteYardlineNumber'].item() - 10
+
+    if (absoluteYardlineNumber > 50):
+        los = 100 - los
+    if (absoluteYardlineNumber <= 50):
+        los = los
+
+    if play_df['playDirection'].iloc[0] == 'left':
+        yards_to_go = -yards_to_go
+    else:
+        yards_to_go = yards_to_go
+
     return los, yards_to_go
 
 
@@ -157,3 +216,12 @@ def calculate_dx_dy(x, y, angle, speed, multiplier):
         dx = -np.sin(radians(angle)) * multiplier * speed
         dy = np.cos(radians(angle)) * multiplier * speed
         return dx, dy
+
+
+# gameId, playId, week = 2022090800, 343, 1
+# play_df = load_play_data(gameId,playId,week)
+# game = load_game(gameId)
+# plays_df = load_all_plays_by_game(gameId, week)
+# x=1
+
+

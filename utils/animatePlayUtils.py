@@ -104,9 +104,7 @@ def create_plot_blocking_formation_statements(ax, frameId, blockers_df, line_col
 
 def save_animation(anim, animation_path):
     """
-    May need ffmpeg installed and added to system PATH
-
-    Saves the animation to a file.
+    Saves the animation to a file. May need ffmpeg installed and added to system PATH.
     :param anim: An animation object from Matplot Animation Library
     :param animation_path:
     :return:
@@ -133,16 +131,19 @@ def animate_play(playId, gameId, weekNumber, zoomed_view=False, plot_blockers=Fa
     # Load play dataframes
     offense, defense, football = load_play(playId, gameId, weekNumber)
     play = get_play_by_id(gameId, playId)
-
-    boxed_view = get_player_max_locations(offense, defense,
-                                          football) if zoomed_view else None  # Display view window size
-
     yardlineNumber, yardsToGo = get_los_details(play, offense)
+
+    # Display window
+    boxed_view = get_player_max_locations(offense, defense, football) if zoomed_view else None
+
+    # Create field to animate upon
     fig, ax = create_football_field(boxed_view=boxed_view, line_of_scrimmage=yardlineNumber, yards_to_go=yardsToGo)
 
+    # Add title from description
     playDesc = play['playDescription'].item()
     plt.title(f'Game # {gameId} Play # {playId} \n {playDesc}')
 
+    # Animate each frame on plotted field
     ims = [[]]
     frame_ids = list(np.arange(int(offense['frameId'].unique().min()), int(offense['frameId'].unique().max()) + 1))
     for frameId in frame_ids:
@@ -156,11 +157,4 @@ def animate_play(playId, gameId, weekNumber, zoomed_view=False, plot_blockers=Fa
 
 
 gameId, playId, week = 2022090800, 343, 1
-
-# create_football_field(boxed_view=(0,0,80,NFL_FIELD_HEIGHT), line_of_scrimmage=10, yards_to_go=10)
-# plt.show()
-
-# plot_play_events(playId, gameId, week, plot_blockers=True)
-# plot_play_tracked_movements(playId, gameId, week)
-
-animate_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=True, animation_path='animateOffense.mp4')
+# animate_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=True, animation_path='animateOffense.mp4')

@@ -393,5 +393,5 @@ gameId, playId, week = 2022090800, 343, 1
 # plot_play_events(playId, gameId, week, plot_blockers=True)
 # plot_play_tracked_movements(playId, gameId, week)
 
-anim = animate_player_movement(gameId=gameId, playId=playId, weekNumber=week, plot_blockers=True)
-save_animation(anim, 'animateOffense.mp4')
+# anim = animate_player_movement(gameId=gameId, playId=playId, weekNumber=week, plot_blockers=True)
+# save_animation(anim, 'animateOffense.mp4')

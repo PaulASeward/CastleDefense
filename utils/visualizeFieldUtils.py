@@ -180,15 +180,12 @@ def create_football_field(boxed_view=None,
 
 def plot_player_locations(offense, defense, football, description=None, zoomed_view=True, plot_blockers=False):
     """
-    Plots the tracked movements from available play data.
-
-    :return:
-
+    Plots the player locations for a single play.
     Args:
         description: Description of the play
-        ht_df: Home team data frame
-        at_df: Away team data frame
-        ft_df: Football data frame
+        offense: Home team data frame
+        defense: Away team data frame
+        football: Football data frame
         zoomed_view: Zooms in on the play
     """
     plt.close()
@@ -209,9 +206,9 @@ def plot_player_locations(offense, defense, football, description=None, zoomed_v
     if description is not None:
         title += f' ({description})'
 
-    offense.plot(x='x', y='y', kind='scatter', ax=ax, color='orange', s=30, label=ht_name)
-    defense.plot(x='x', y='y', kind='scatter', ax=ax, color='blue', s=30, label=at_name)
-    football.plot(x='x', y='y', kind='scatter', ax=ax, color='brown', s=30, label='football')
+    offense.plot(x='x', y='y', kind='scatter', ax=ax, color='orangered', s=10, label=ht_name)
+    defense.plot(x='x', y='y', kind='scatter', ax=ax, color='blue', s=10, label=at_name)
+    football.plot(x='x', y='y', kind='scatter', ax=ax, color='brown', s=15, label='football')
 
     if plot_blockers:
         blockers_df = get_blocking_players(offense)
@@ -224,11 +221,13 @@ def plot_player_locations(offense, defense, football, description=None, zoomed_v
 
 def plot_play_events(playId, gameId, week, zoomed_view=False, plot_blockers=False):
     """
-    Plots all events for a single play.
-    :param playId:
-    :param gameId:
-    :param week:
-    :return:
+    Plots the discrete events for a single play as seperate diagrams.
+    Args:
+        playId: identifies the play and game
+        gameId:
+        week:
+        zoomed_view: Zooms in on the play
+        plot_blockers: Displays red line connnecting eligible blockers
     """
     # Load play dataframes
     offense, defense, football = load_play(playId, gameId, week)
@@ -246,11 +245,12 @@ def plot_play_events(playId, gameId, week, zoomed_view=False, plot_blockers=Fals
 
 def plot_play_tracked_movements(playId, gameId, week, zoomed_view=False):
     """
-    Plots the tracked movements for a single play.
-    :param playId:
-    :param gameId:
-    :param week:
-    :return:
+     Plots the tracked movements from one play. This visualizes the path of each player that they travelled on a certain play.
+    Args:
+        playId: identifier for the play and game
+        gameId:
+        week:
+        zoomed_view: Displays zoome in window of the play
     """
     # Load play dataframes
     offense, defense, football = load_play(playId, gameId, week)
@@ -258,7 +258,14 @@ def plot_play_tracked_movements(playId, gameId, week, zoomed_view=False):
     plot_player_locations(offense, defense, football, zoomed_view=zoomed_view)
 
 
-def plot_blocking_formation(ax, blocker_df, line_color):
+def plot_blocking_formation(ax, blocker_df, line_color='red'):
+    """
+    Plots a line between eligble blockers resembling the blocking formation for a play.
+    Args:
+        ax: Matplotlib axis
+        blocker_df: DataFrame with only the blocking players
+        line_color: Color of the line.
+    """
     blocker_df = blocker_df.sort_values(by=['y'], ascending=[True])
 
     for i in range(len(blocker_df) - 1):

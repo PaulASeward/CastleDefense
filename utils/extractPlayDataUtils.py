@@ -178,11 +178,16 @@ def get_player_max_locations(ht_df, at_df, ft_df, padding=5):
     return boxed_view_coordinates
 
 
-def get_blocking_players(ht_df):
-    offense_player_ids = ht_df['nflId'].unique()
+def get_blocking_players(offense_df):
+    """
+    Returns a DataFrame with only the blocking players
+    Args:
+        offense_df: Should only use for Offensive team.
+    """
+    offense_player_ids = offense_df['nflId'].unique()
     players_df = get_players_by_ids(offense_player_ids)
     blocking_players_df = players_df[players_df['position'].isin(['TE', 'G', 'C', 'T'])]
-    blocking_player_df = ht_df[ht_df['nflId'].isin(blocking_players_df['nflId'])]
+    blocking_player_df = offense_df[offense_df['nflId'].isin(blocking_players_df['nflId'])]
     return blocking_player_df
 
 

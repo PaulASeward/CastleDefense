@@ -9,10 +9,23 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
+
 ###################
 # Animating PLayers Movement: https://www.kaggle.com/code/ar2017/nfl-big-data-bowl-2021-animating-players-movement
 ###################
 def plot_players_at_timestep(ax, time, team_df, team_color, plot_blockers=False):
+    """
+    Generate the plot statements for each player's location, velocity vector, jersey number, orientation for a given team at a specific timestep.
+    Args:
+        ax: Matplotlib axis
+        time: Timestep of play
+        team_df: DataFrame with only the players on a specific team
+        team_color: Color of the circle representing the player
+        plot_blockers: Whether to plot the blocking formation
+
+    Returns:
+        List of plotting statements
+    """
     patch = []
 
     player_data = team_df.query('time == ' + str(time))
@@ -22,7 +35,7 @@ def plot_players_at_timestep(ax, time, team_df, team_color, plot_blockers=False)
 
     if plot_blockers:
         blockers_df = get_blocking_players(team_df)
-        patch.extend(create_plot_blocking_formation_statements(ax, blockers_df, time, 'red'))
+        patch.extend(create_plot_blocking_formation_statements(ax, time, blockers_df))
 
     for _, player in player_data.iterrows():
         jersey_number_text = ax.text(player['x'], player['y'], int(player['jerseyNumber']), va='center', ha='center',
@@ -41,6 +54,16 @@ def plot_players_at_timestep(ax, time, team_df, team_color, plot_blockers=False)
 
 
 def update_animation_at_timestep(ax, time, offense, defense, football, plot_blockers=False):
+    """
+    Updates the animation at a specific timestep.
+    Args:
+        ax: Matplotlib axis
+        time: timestep of play
+        offense:
+        defense:
+        football:
+        plot_blockers:
+    """
     patch = []
 
     # Plot home players
@@ -57,7 +80,15 @@ def update_animation_at_timestep(ax, time, offense, defense, football, plot_bloc
     return patch
 
 
-def create_plot_blocking_formation_statements(ax, blockers_df, time, line_color):
+def create_plot_blocking_formation_statements(ax, time, blockers_df, line_color='red'):
+    """
+    Creates the plot statements for the blocking formation.
+    Args:
+        ax: Matplotlib axis
+        time: timestep of play
+        blockers_df: DataFrame with only the blocking players
+        line_color: Red is best for visibility
+    """
     plot_statements = []
     blocker_df = blockers_df.query('time == ' + str(time))
     blocker_df = blocker_df.sort_values(by=['y'], ascending=[True])
@@ -67,18 +98,26 @@ def create_plot_blocking_formation_statements(ax, blockers_df, time, line_color)
         next_blocker = blocker_df.iloc[i + 1]
 
         if next_blocker is not None:
-            plot_statements.extend(ax.plot([blocker['x'], next_blocker['x']], [blocker['y'], next_blocker['y']], color=line_color))
+            plot_statements.extend(
+                ax.plot([blocker['x'], next_blocker['x']], [blocker['y'], next_blocker['y']], color=line_color))
 
     return plot_statements
 
 
 def animate_player_movement(playId, gameId, weekNumber, zoomed_view=False, plot_blockers=False):
     """
-    Animates player movement for a specific play.
-    :param weekNumber:
-    :param playId:
-    :param gameId:
-    :return:
+    Animates the movement of players and the football for a given play.
+    Args:
+        playId: Play Id to identify the play
+        gameId: Game Id to identify the game
+        weekNumber:
+        zoomed_view: Only displays the zoomed in view of the play. This window is generated dynamically based on how
+        far the players move.
+        plot_blockers: Whether to plot the blocking formation. This is red line between the eligible blockers.
+
+    Returns:
+        An animation object. This is generated from Matplotlib's animation library. The helper methods generates list
+        of plotting statements with specific details such as location, jersey number, orientation, and velocity vector.
     """
     # Load play dataframes
     offense, defense, football = load_play(playId, gameId, weekNumber)
@@ -102,7 +141,8 @@ def animate_player_movement(playId, gameId, weekNumber, zoomed_view=False, plot_
 
     ims = [[]]
     for time in np.arange(minTime, maxTime + 1):
-        patch = update_animation_at_timestep(ax, time, offense=offense, defense=defense, football=football, plot_blockers=plot_blockers)
+        patch = update_animation_at_timestep(ax, time, offense=offense, defense=defense, football=football,
+                                             plot_blockers=plot_blockers)
         ims.append(patch)
 
     anim = animation.ArtistAnimation(fig, ims, repeat=False)

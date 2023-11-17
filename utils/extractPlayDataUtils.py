@@ -11,9 +11,7 @@ def load_play(playId, gameId, week=1):
         playId:
         gameId:
         week:
-
     Returns: offense, defense and football dataframes, sorted by time ascending
-
     """
     play = get_play_by_id(gameId, playId)
     play_df = load_play_data(playId, gameId, week)
@@ -110,12 +108,11 @@ def load_teams_from_play(play_df, play, gameId):
 def get_play_by_id(gameId, playId):
     """
     Returns a play DataFrame given a gameId and playId.
-    :param ht_df:
-    :param gameId:
-    :param playId:
-    :return:
+    Args:
+        gameId: identifiers to the play
+        playId:
+    Returns: Pandas DataFrame with the play
     """
-
     path_to_plays = os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'overview_data')), 'plays.csv')
     plays_df = pd.read_csv(path_to_plays)
     play = plays_df[(plays_df['gameId'] == gameId) & (plays_df['playId'] == playId)]
@@ -133,11 +130,15 @@ def get_players_by_ids(player_ids):
     player_ids_df = players_df[(players_df['nflId'].isin(player_ids))]
     return player_ids_df
 
+
 def get_los_details(play, play_df):
     """
     Extracts the line of scrimmage and yards to go from a play DataFrame.
-    :param play:
-    :return:
+    Args:
+        play:
+        play_df:
+    Returns: Line of Scrimmage and Yards To Go. Both are scalar values that have been flipped to the playDirection
+
     """
     los = play['yardlineNumber'].iloc[0]
     yards_to_go = play['yardsToGo'].iloc[0]
@@ -191,36 +192,25 @@ def get_blocking_players(offense_df):
     return blocking_player_df
 
 
-def calculate_dx_dy(x, y, angle, speed, multiplier):
+def calculate_dx_dy(speed, angle):
     """
-    Not sure if this is needed. Might be required for old data without this tracking
-    :param x:
-    :param y:
+    Calculates the seperate x and y vectors for the speed from the player's direction
     :param angle:
     :param speed:
-    :param multiplier:
     :return:
     """
-    if angle <= 90:
-        angle = angle
-        dx = np.sin(radians(angle)) * multiplier * speed
-        dy = np.cos(radians(angle)) * multiplier * speed
-        return dx, dy
-    if angle > 90 and angle <= 180:
-        angle = angle - 90
-        dx = np.sin(radians(angle)) * multiplier * speed
-        dy = -np.cos(radians(angle)) * multiplier * speed
-        return dx, dy
-    if angle > 180 and angle <= 270:
-        angle = angle - 180
-        dx = -(np.sin(radians(angle)) * multiplier * speed)
-        dy = -(np.cos(radians(angle)) * multiplier * speed)
-        return dx, dy
-    if angle > 270 and angle <= 360:
-        angle = 360 - angle
-        dx = -np.sin(radians(angle)) * multiplier * speed
-        dy = np.cos(radians(angle)) * multiplier * speed
-        return dx, dy
+    angle = np.radians(angle % 360)  # Ensure angle is within [0, 360) and convert to radians
+
+    dx = np.sin(angle) * speed  # Uses simple trigonometric identities
+    dy = np.cos(angle) * speed
+
+    if 90 < angle <= 270:
+        dy = -dy
+
+    if 180 < angle <= 360:
+        dx = -dx
+
+    return dx, dy
 
 
 # gameId, playId, week = 2022090800, 343, 1

@@ -1,7 +1,6 @@
 from CastleDefense.utils.extractPlayDataUtils import *
 from CastleDefense.utils.visualizeFieldUtils import *
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 from matplotlib import animation
 import dateutil
 from matplotlib.animation import FFMpegWriter
@@ -47,7 +46,7 @@ def plot_players_at_timestep(ax, time, team_df, team_color, plot_blockers=False)
         patch.append(jersey_number_text)
 
         # Calculate and plot players' velocity vectors
-        dx, dy = calculate_dx_dy(player['x'], player['y'], player['dir'], player['s'], 1)
+        dx, dy = calculate_dx_dy(player['s'], player['dir'])
         patch.append(ax.arrow(player['x'], player['y'], dx, dy, color='grey', width=0.15, shape='full'))
 
     return patch

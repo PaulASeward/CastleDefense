@@ -1,11 +1,7 @@
 from CastleDefense.utils.extractPlayDataUtils import *
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from matplotlib import animation
-import dateutil
-from matplotlib.animation import FFMpegWriter
 import warnings
-
 warnings.filterwarnings('ignore')
 
 # Constants for NFL field dimensions
@@ -19,8 +15,6 @@ def plot_field_lines(ax, line_color='white'):
     Args:
         line_color: Color of the field lines, default white
         ax: Subplot to plot on
-
-    Returns:
     """
     field_width = NFL_FIELD_WIDTH
     x_coord_lines = [10]
@@ -130,9 +124,6 @@ def create_football_field(boxed_view=None,
         h_padding: Adds horizontal padding to the view
         field_color: Default darkgreen
         line_color: Default white
-
-    Returns:
-
     """
     if boxed_view is None:
         boxed_view = (0, 0, NFL_FIELD_WIDTH, NFL_FIELD_HEIGHT)

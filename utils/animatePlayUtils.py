@@ -18,7 +18,7 @@ def plot_players_at_timestep(ax, time, team_df, team_color, plot_blockers=False)
     player_data = team_df.query('time == ' + str(time))
     play_direction = player_data['playDirection'].iloc[0]
 
-    patch.extend(ax.plot(player_data['x'], player_data['y'], 'o', c=team_color, ms=20, mec='white'))
+    patch.extend(ax.plot(player_data['x'], player_data['y'], 'o', c=team_color, ms=13))
 
     if plot_blockers:
         blockers_df = get_blocking_players(team_df)
@@ -26,7 +26,7 @@ def plot_players_at_timestep(ax, time, team_df, team_color, plot_blockers=False)
 
     for _, player in player_data.iterrows():
         jersey_number_text = ax.text(player['x'], player['y'], int(player['jerseyNumber']), va='center', ha='center',
-                                     color='black', size='small')
+                                     color='white', fontsize=10)
 
         # Rotate the text based on player's orientation
         player_orientation = player['o'] if play_direction == 'left' else player['o'] + 180
@@ -35,7 +35,7 @@ def plot_players_at_timestep(ax, time, team_df, team_color, plot_blockers=False)
 
         # Calculate and plot players' velocity vectors
         dx, dy = calculate_dx_dy(player['x'], player['y'], player['dir'], player['s'], 1)
-        patch.append(ax.arrow(player['x'], player['y'], dx, dy, color='black', width=0.25, shape='full'))
+        patch.append(ax.arrow(player['x'], player['y'], dx, dy, color='grey', width=0.15, shape='full'))
 
     return patch
 
@@ -44,17 +44,32 @@ def update_animation_at_timestep(ax, time, offense, defense, football, plot_bloc
     patch = []
 
     # Plot home players
-    patch.extend(plot_players_at_timestep(ax, time, offense, 'gold', plot_blockers=plot_blockers))
+    patch.extend(plot_players_at_timestep(ax, time, offense, 'orangered', plot_blockers=plot_blockers))
 
     # Plot away players
-    patch.extend(plot_players_at_timestep(ax, time, defense, 'orangered'))
+    patch.extend(plot_players_at_timestep(ax, time, defense, 'blue'))
 
     # Plot football
     football_data = football.query('time == ' + str(time))
-    patch.extend(ax.plot(football_data['x'], football_data['y'], 'o', c='black', ms=10, mec='white',
+    patch.extend(ax.plot(football_data['x'], football_data['y'], 'D', c='brown', ms=10,
                          data=football_data['club']))
 
     return patch
+
+
+def create_plot_blocking_formation_statements(ax, blockers_df, time, line_color):
+    plot_statements = []
+    blocker_df = blockers_df.query('time == ' + str(time))
+    blocker_df = blocker_df.sort_values(by=['y'], ascending=[True])
+
+    for i in range(len(blocker_df) - 1):
+        blocker = blocker_df.iloc[i]
+        next_blocker = blocker_df.iloc[i + 1]
+
+        if next_blocker is not None:
+            plot_statements.extend(ax.plot([blocker['x'], next_blocker['x']], [blocker['y'], next_blocker['y']], color=line_color))
+
+    return plot_statements
 
 
 def animate_player_movement(playId, gameId, weekNumber, zoomed_view=False, plot_blockers=False):

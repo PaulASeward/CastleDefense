@@ -46,7 +46,7 @@ def create_plot_statements_at_frameId(ax, frameId, team_df, team_color, plot_blo
 
         # Calculate and plot players' velocity vectors
         dx, dy = calculate_dx_dy(player['s'], player['dir'])
-        patch.append(ax.arrow(player['x'], player['y'], dx, dy, color='grey', width=0.15, shape='full'))
+        patch.append(ax.arrow(player['x'], player['y'], dx, dy, color='grey', width=0.15, shape='full', label='VelocityVector'))
 
     return patch
 
@@ -94,7 +94,7 @@ def animate_frameId(ax, frameId, offense, defense, football, plot_blockers=False
     patch.extend(create_plot_statements_at_frameId(ax, frameId, defense, 'blue'))
 
     # Plot football
-    patch.extend(ax.plot(football_data['x'], football_data['y'], 'D', c='brown', ms=10, data=football_data['club']))
+    patch.extend(ax.plot(football_data['x'], football_data['y'], 'D', c='brown', ms=10, data=football_data['club'], label="Football"))
 
     return patch
 
@@ -209,6 +209,13 @@ def animate_func_play(playId, gameId, weekNumber, zoomed_view=False, plot_blocke
         # Remove players' positions from the previous frame
         for artist in ax.findobj(match=lambda x: x.get_label() == 'PlayerCircle'):
             artist.remove()
+
+            # Remove arrows from the previous frame
+        for arrow in ax.findobj(match=lambda x: x.get_label() == 'VelocityVector'):
+            arrow.remove()
+
+        for fball in ax.findobj(match=lambda x: x.get_label() == 'Football'):
+            fball.remove()
 
         animate_frameId(ax, frameId + 1, offense=offense, defense=defense, football=football,
                         plot_blockers=plot_blockers, center_on_football=center_on_football)

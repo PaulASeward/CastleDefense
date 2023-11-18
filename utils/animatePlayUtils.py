@@ -189,7 +189,7 @@ def create_plot_blocking_formation_statements(ax, frameId, blockers_df, line_col
 
         if next_blocker is not None:
             plot_statements.extend(
-                ax.plot([blocker['x'], next_blocker['x']], [blocker['y'], next_blocker['y']], color=line_color))
+                ax.plot([blocker['x'], next_blocker['x']], [blocker['y'], next_blocker['y']], color=line_color, label='BlockingLine'))
 
     return plot_statements
 
@@ -221,6 +221,7 @@ def animate_play(playId, gameId, weekNumber, zoomed_view=False, plot_blockers=Fa
         of plotting statements with specific details such as location, jersey number, orientation, and velocity vector.
     """
     # Load play dataframes
+    plt.close()
     offense, defense, football = load_play(playId, gameId, weekNumber)
     play = get_play_by_id(gameId, playId)
     yardlineNumber, yardsToGo = get_los_details(play, offense)
@@ -280,7 +281,7 @@ def animate_func_play(playId, gameId, weekNumber, zoomed_view=False, plot_blocke
         # # Remove all texts, circles, arrows, and footballs from the previous frame unless it is a zoom event
         is_zoom_event = center_on_football and event_frameIds and frameId+1 in event_frameIds.keys()
         if not is_zoom_event:
-            artists_to_remove = ax.texts + ax.findobj(match=lambda x: x.get_label() in ['PlayerCircle', 'VelocityVector', 'Football'])
+            artists_to_remove = ax.texts + ax.findobj(match=lambda x: x.get_label() in ['Football', 'PlayerCircle', 'BlockingLine', 'VelocityVector'])
             [artist.remove() for artist in artists_to_remove]
 
         animate_frameId(ax, frameId + 1, offense=offense, defense=defense, football=football,
@@ -300,8 +301,13 @@ def animate_func_play(playId, gameId, weekNumber, zoomed_view=False, plot_blocke
     return anim
 
 
-gameId, playId, week = 2022090800, 343, 1
-# animate_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=True,
+# gameId, playId, week = 2022101609, 2504, 6  # Keneth Walker 21 Yard run
+# gameId, playId, week = 2022100908,3537, 5  # 9 Yard catch by P.Hesse
+gameId, playId, week = 2022090800, 343, 1  # 2 Yard run
+
+# animate_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=False,
 #                   animation_path='animateFuncOffense.mp4')
-animate_func_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=False, center_on_football=True,
-                  zoom_effect_on_events=True, animation_path='animateFuncOffense.mp4')
+# animate_func_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=False, center_on_football=True,
+#                   animation_path='animateFuncOffense.mp4')
+# animate_func_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=False, center_on_football=True,
+#                   zoom_effect_on_events=True, animation_path='animateFuncOffense.mp4')

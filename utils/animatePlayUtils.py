@@ -277,10 +277,9 @@ def animate_func_play(playId, gameId, weekNumber, zoomed_view=False, plot_blocke
         """
         Function used to update each animation timestep (frameId) from FuncAnimation.
         """
-        # # Remove all texts, circles, arrows, and footballs from the previous frame
-        if center_on_football and event_frameIds and frameId+1 in event_frameIds.keys():
-            a = 1
-        else:
+        # # Remove all texts, circles, arrows, and footballs from the previous frame unless it is a zoom event
+        is_zoom_event = center_on_football and event_frameIds and frameId+1 in event_frameIds.keys()
+        if not is_zoom_event:
             artists_to_remove = ax.texts + ax.findobj(match=lambda x: x.get_label() in ['PlayerCircle', 'VelocityVector', 'Football'])
             [artist.remove() for artist in artists_to_remove]
 

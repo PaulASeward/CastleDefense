@@ -186,7 +186,7 @@ def plot_player_locations(offense, defense, football, description=None, zoomed_v
     boxed_view = get_player_max_locations(offense, defense, football) if zoomed_view else None
 
     fig, ax = create_football_field(boxed_view=boxed_view, line_of_scrimmage=line_of_scrimmage, yards_to_go=yards_to_go,
-                                    field_color='white', line_color='black')
+                                    field_color='green', line_color='white')
 
     ht_name = offense['club'].iloc[0]
     at_name = defense['club'].iloc[0]

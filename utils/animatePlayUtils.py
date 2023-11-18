@@ -2,7 +2,7 @@ from CastleDefense.utils.extractPlayDataUtils import *
 from CastleDefense.utils.visualizeFieldUtils import *
 import matplotlib.pyplot as plt
 from matplotlib import animation
-from matplotlib.animation import FFMpegWriter
+from matplotlib.animation import FFMpegWriter, FuncAnimation
 import warnings
 
 warnings.filterwarnings('ignore')
@@ -29,7 +29,7 @@ def create_plot_statements_at_frameId(ax, frameId, team_df, team_color, plot_blo
     player_data = team_df.query('frameId == ' + str(frameId))
     play_direction = player_data['playDirection'].iloc[0]
 
-    patch.extend(ax.plot(player_data['x'], player_data['y'], 'o', c=team_color, ms=13))
+    patch.extend(ax.plot(player_data['x'], player_data['y'], 'o', c=team_color, ms=13, label='PlayerCircle'))
 
     if plot_blockers:
         blockers_df = get_blocking_players(team_df)
@@ -51,7 +51,25 @@ def create_plot_statements_at_frameId(ax, frameId, team_df, team_color, plot_blo
     return patch
 
 
-def animate_frameId(ax, frameId, offense, defense, football, plot_blockers=False):
+def center_view_on_football(ax, football_data, window_size=10):
+    """
+    Centers the view on the football through set_xlim() methods.
+    Args:
+        ax: Matplotlib axis
+        football_data: DataFrame with only the football
+        window_size: The size of the window to display around the football
+    """
+    x_min = football_data['x'].iloc[0] - window_size
+    x_max = football_data['x'].iloc[0] + window_size
+    y_min = football_data['y'].iloc[0] - window_size
+    y_max = football_data['y'].iloc[0] + window_size
+
+    ax.set_xlim(x_min, x_max)
+    ax.set_ylim(y_min, y_max)
+    return ax
+
+
+def animate_frameId(ax, frameId, offense, defense, football, plot_blockers=False, center_on_football=False):
     """
     Updates the animation at a specific timestep.
     Args:
@@ -60,9 +78,14 @@ def animate_frameId(ax, frameId, offense, defense, football, plot_blockers=False
         offense:
         defense:
         football:
-        plot_blockers:
+        plot_blockers: Plots the blocking formation with red lines
+        center_on_football: Allows camera to follow the football
     """
     patch = []
+    football_data = football[football['frameId'] == frameId]
+
+    if center_on_football:
+        center_view_on_football(ax, football_data)
 
     # Plot home players
     patch.extend(create_plot_statements_at_frameId(ax, frameId, offense, 'orangered', plot_blockers=plot_blockers))
@@ -71,9 +94,7 @@ def animate_frameId(ax, frameId, offense, defense, football, plot_blockers=False
     patch.extend(create_plot_statements_at_frameId(ax, frameId, defense, 'blue'))
 
     # Plot football
-    football_data = football[football['frameId'] == frameId]
-    patch.extend(ax.plot(football_data['x'], football_data['y'], 'D', c='brown', ms=10,
-                         data=football_data['club']))
+    patch.extend(ax.plot(football_data['x'], football_data['y'], 'D', c='brown', ms=10, data=football_data['club']))
 
     return patch
 
@@ -147,14 +168,65 @@ def animate_play(playId, gameId, weekNumber, zoomed_view=False, plot_blockers=Fa
     ims = [[]]
     frame_ids = list(np.arange(int(offense['frameId'].unique().min()), int(offense['frameId'].unique().max()) + 1))
     for frameId in frame_ids:
-        patch = animate_frameId(ax, frameId, offense=offense, defense=defense, football=football, plot_blockers=plot_blockers)
+        patch = animate_frameId(ax, frameId, offense=offense, defense=defense, football=football,
+                                plot_blockers=plot_blockers)
         ims.append(patch)
 
+    # Generate animation file and save
     anim = animation.ArtistAnimation(fig, ims, repeat=False)
     save_animation(anim, animation_path)
 
     return anim
 
 
+def animate_func_play(playId, gameId, weekNumber, zoomed_view=False, plot_blockers=False, center_on_football=False,
+                      animation_path='animation.mp4'):
+    """
+    Animates the movement of players and the football for a given play using FuncAnimation.
+    """
+    # Load play dataframes
+    plt.close()
+    offense, defense, football = load_play(playId, gameId, weekNumber)
+    play = get_play_by_id(gameId, playId)
+    yardlineNumber, yardsToGo = get_los_details(play, offense)
+
+    # Display window
+    boxed_view = get_player_max_locations(offense, defense, football) if zoomed_view else None
+
+    # Create field to animate upon
+    fig, ax = create_football_field(boxed_view=boxed_view, line_of_scrimmage=yardlineNumber, yards_to_go=yardsToGo)
+    plt.show()
+    playDesc = play['playDescription'].item()
+    ax.set_title(f'Game # {gameId} Play # {playId} \n {playDesc}')
+
+    def update(frameId, ax, offense, defense, football, plot_blockers, center_on_football=False):
+        """
+        Function used to update each animation timestep (frameId) from FuncAnimation.
+        """
+        for artist in ax.texts:
+            artist.remove()
+
+        # Remove players' positions from the previous frame
+        for artist in ax.findobj(match=lambda x: x.get_label() == 'PlayerCircle'):
+            artist.remove()
+
+        animate_frameId(ax, frameId + 1, offense=offense, defense=defense, football=football,
+                        plot_blockers=plot_blockers, center_on_football=center_on_football)
+
+    # Create FuncAnimation
+    frames = range(int(offense['frameId'].min()), int(offense['frameId'].max()))
+    anim = FuncAnimation(fig, update, frames=len(frames),
+                         fargs=(ax, offense, defense, football, plot_blockers, center_on_football), repeat=False)
+
+    # Save animation
+    anim.save(animation_path, writer=FFMpegWriter(fps=10))
+    plt.show()  # Display the animation
+
+    return anim
+
+
 gameId, playId, week = 2022090800, 343, 1
-# animate_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=True, animation_path='animateOffense.mp4')
+# animate_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=True,
+#                   animation_path='animateFuncOffense.mp4')
+animate_func_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=False, center_on_football=True,
+                  animation_path='animateFuncOffense.mp4')

@@ -4,8 +4,9 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 from matplotlib.animation import FFMpegWriter, FuncAnimation
 import warnings
-
 warnings.filterwarnings('ignore')
+
+WINDOW_DISPLAY_SIZE = 6
 
 
 ###################
@@ -46,12 +47,59 @@ def create_plot_statements_at_frameId(ax, frameId, team_df, team_color, plot_blo
 
         # Calculate and plot players' velocity vectors
         dx, dy = calculate_dx_dy(player['s'], player['dir'])
-        patch.append(ax.arrow(player['x'], player['y'], dx, dy, color='grey', width=0.15, shape='full', label='VelocityVector'))
+        patch.append(
+            ax.arrow(player['x'], player['y'], dx, dy, color='grey', width=0.15, shape='full', label='VelocityVector'))
 
     return patch
 
 
-def center_view_on_football(ax, football_data, window_size=10):
+def adjust_frameIds_for_zoom_effect(offense, defense, football, event_frameIds):
+    """
+    Adjusts the frameIds for the offense, defense, and football DataFrames to allow for a zoom effect.
+    Args:
+        offense:
+        defense:
+        football:
+        event_frameIds: Dictionary with the frameId as the key and the zoom out amount as the value
+    Returns:
+        The altered offense, defense, and football DataFrames and dictionaries
+    """
+    zoomable_events = ['ball_snap', 'handoff', 'pass_arrived', 'touchdown']
+    # Get the frameIds for each event
+    events = offense['event'].unique()
+    for event in events:
+        if event in zoomable_events:
+            frame_id = offense[offense['event'] == event]['frameId'].iloc[0]
+
+            # Bump up all later frameIds by 10
+            offense.loc[offense['frameId'] > frame_id, 'frameId'] += 10
+            defense.loc[defense['frameId'] > frame_id, 'frameId'] += 10
+            football.loc[football['frameId'] > frame_id, 'frameId'] += 10
+
+            # Add 10 rows with consecutive frameIds to offense, defense, football
+            zoom_out_increases = [5, 10, 13, 14, 15, 15, 14, 13, 10, 5]
+            for i in range(1, 11):  # Uses 1 index to offset so zoom effect begins immediately AFTER the event
+                new_frame_id = frame_id + i
+                event_frameIds[new_frame_id] = (zoom_out_increases[i - 1], event)
+
+                # Duplicate rows of timestep to offense, defense, football with incremented frameId value
+                offense_spacing_row = football[football['frameId'] == frame_id].iloc[0]
+                offense_spacing_row['frameId'] = new_frame_id
+
+                defense_spacing_row = football[football['frameId'] == frame_id].iloc[0]
+                defense_spacing_row['frameId'] = new_frame_id
+
+                football_spacing_row = football[football['frameId'] == frame_id].iloc[0]
+                football_spacing_row['frameId'] = new_frame_id
+
+                offense = pd.concat([offense, pd.DataFrame([offense_spacing_row])], ignore_index=True)
+                defense = pd.concat([defense, pd.DataFrame([defense_spacing_row])], ignore_index=True)
+                football = pd.concat([football, pd.DataFrame([football_spacing_row])], ignore_index=True)
+
+    return offense, defense, football, event_frameIds
+
+
+def center_view_on_football(ax, football_data, window_size=WINDOW_DISPLAY_SIZE):
     """
     Centers the view on the football through set_xlim() methods.
     Args:
@@ -59,6 +107,8 @@ def center_view_on_football(ax, football_data, window_size=10):
         football_data: DataFrame with only the football
         window_size: The size of the window to display around the football
     """
+    # TODO: Clip the mins and max to the boundaries of the field using min and max functions
+
     x_min = football_data['x'].iloc[0] - window_size
     x_max = football_data['x'].iloc[0] + window_size
     y_min = football_data['y'].iloc[0] - window_size
@@ -69,7 +119,22 @@ def center_view_on_football(ax, football_data, window_size=10):
     return ax
 
 
-def animate_frameId(ax, frameId, offense, defense, football, plot_blockers=False, center_on_football=False):
+def zoom_effect(ax, frameId, football_data, event_frameIds, window_size=WINDOW_DISPLAY_SIZE):
+    """
+    Zooms out and back in to give context of the play.
+    Args:
+        ax:
+        frameId:
+        football_data:
+        event_frameIds:
+        window_size:
+    """
+    window_size += event_frameIds[frameId][0]
+    return center_view_on_football(ax, football_data, window_size=window_size)
+
+
+def animate_frameId(ax, frameId, offense, defense, football, event_frameIds=None, plot_blockers=False,
+                    center_on_football=False):
     """
     Updates the animation at a specific timestep.
     Args:
@@ -84,8 +149,13 @@ def animate_frameId(ax, frameId, offense, defense, football, plot_blockers=False
     patch = []
     football_data = football[football['frameId'] == frameId]
 
+    # Centers the display window on the football like a rolling birds eye view
     if center_on_football:
-        center_view_on_football(ax, football_data)
+        if event_frameIds and frameId in event_frameIds.keys():
+            zoom_effect(ax, frameId, football_data, event_frameIds)  # Zoom out and back in to give context of the play
+            return patch
+        else:
+            center_view_on_football(ax, football_data)  # Center the view on the football
 
     # Plot home players
     patch.extend(create_plot_statements_at_frameId(ax, frameId, offense, 'orangered', plot_blockers=plot_blockers))
@@ -94,7 +164,8 @@ def animate_frameId(ax, frameId, offense, defense, football, plot_blockers=False
     patch.extend(create_plot_statements_at_frameId(ax, frameId, defense, 'blue'))
 
     # Plot football
-    patch.extend(ax.plot(football_data['x'], football_data['y'], 'D', c='brown', ms=10, data=football_data['club'], label="Football"))
+    patch.extend(ax.plot(football_data['x'], football_data['y'], 'D', c='brown', ms=10, data=football_data['club'],
+                         label="Football"))
 
     return patch
 
@@ -180,7 +251,7 @@ def animate_play(playId, gameId, weekNumber, zoomed_view=False, plot_blockers=Fa
 
 
 def animate_func_play(playId, gameId, weekNumber, zoomed_view=False, plot_blockers=False, center_on_football=False,
-                      animation_path='animation.mp4'):
+                      zoom_effect_on_events=False, animation_path='animation.mp4'):
     """
     Animates the movement of players and the football for a given play using FuncAnimation.
     """
@@ -190,40 +261,38 @@ def animate_func_play(playId, gameId, weekNumber, zoomed_view=False, plot_blocke
     play = get_play_by_id(gameId, playId)
     yardlineNumber, yardsToGo = get_los_details(play, offense)
 
+    event_frameIds = {}
+    if zoom_effect_on_events:
+        offense, defense, football, event_frameIds = adjust_frameIds_for_zoom_effect(offense, defense, football, event_frameIds)
+
     # Display window
     boxed_view = get_player_max_locations(offense, defense, football) if zoomed_view else None
 
     # Create field to animate upon
     fig, ax = create_football_field(boxed_view=boxed_view, line_of_scrimmage=yardlineNumber, yards_to_go=yardsToGo)
-    plt.show()
     playDesc = play['playDescription'].item()
     ax.set_title(f'Game # {gameId} Play # {playId} \n {playDesc}')
 
-    def update(frameId, ax, offense, defense, football, plot_blockers, center_on_football=False):
+    def update(frameId, ax, offense, defense, football, plot_blockers, center_on_football=False, event_frameIds=None):
         """
         Function used to update each animation timestep (frameId) from FuncAnimation.
         """
-        for artist in ax.texts:
-            artist.remove()
-
-        # Remove players' positions from the previous frame
-        for artist in ax.findobj(match=lambda x: x.get_label() == 'PlayerCircle'):
-            artist.remove()
-
-            # Remove arrows from the previous frame
-        for arrow in ax.findobj(match=lambda x: x.get_label() == 'VelocityVector'):
-            arrow.remove()
-
-        for fball in ax.findobj(match=lambda x: x.get_label() == 'Football'):
-            fball.remove()
+        # # Remove all texts, circles, arrows, and footballs from the previous frame
+        if center_on_football and event_frameIds and frameId+1 in event_frameIds.keys():
+            a = 1
+        else:
+            artists_to_remove = ax.texts + ax.findobj(match=lambda x: x.get_label() in ['PlayerCircle', 'VelocityVector', 'Football'])
+            [artist.remove() for artist in artists_to_remove]
 
         animate_frameId(ax, frameId + 1, offense=offense, defense=defense, football=football,
-                        plot_blockers=plot_blockers, center_on_football=center_on_football)
+                        event_frameIds=event_frameIds, plot_blockers=plot_blockers,
+                        center_on_football=center_on_football)
 
     # Create FuncAnimation
-    frames = range(int(offense['frameId'].min()), int(offense['frameId'].max()))
-    anim = FuncAnimation(fig, update, frames=len(frames),
-                         fargs=(ax, offense, defense, football, plot_blockers, center_on_football), repeat=False)
+    frames = len(range(int(offense['frameId'].min()), int(offense['frameId'].max())))
+    anim = FuncAnimation(fig, update, frames=frames,
+                         fargs=(ax, offense, defense, football, plot_blockers, center_on_football, event_frameIds),
+                         repeat=False)
 
     # Save animation
     anim.save(animation_path, writer=FFMpegWriter(fps=10))
@@ -236,4 +305,4 @@ gameId, playId, week = 2022090800, 343, 1
 # animate_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=True,
 #                   animation_path='animateFuncOffense.mp4')
 animate_func_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=False, center_on_football=True,
-                  animation_path='animateFuncOffense.mp4')
+                  zoom_effect_on_events=True, animation_path='animateFuncOffense.mp4')

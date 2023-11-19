@@ -214,6 +214,105 @@ def calculate_dx_dy(speed, angle):
     return dx, dy
 
 
+def bump_up_frameIds(df, frame_id, increment=10):
+    """
+    Bumps up all frameIds after a specific frameId by a given increment.
+    Args:
+        df:
+        frame_id:
+        increment:
+    """
+    df.loc[df['frameId'] > frame_id, 'frameId'] += increment
+
+
+def add_rows_with_incremented_frameId(original_df, frame_id, new_frame_id):
+    """
+    Adds spacing rows to a DataFrame with an incremented frameId.
+    Args:
+        df:
+        original_df:
+        frame_id: Original frame_Id when event occurs
+        new_frame_id: New frameId to space rows for zoom effects
+    Returns: The new dataframe with the added rows
+    """
+    spacing_row = original_df[original_df['frameId'] == frame_id].iloc[0]
+    spacing_row['frameId'] = new_frame_id
+    updated_df = pd.concat([original_df, pd.DataFrame([spacing_row])], ignore_index=True)
+    return updated_df
+
+
+def adjust_frameIds_for_initial_zoom(offense, defense, football, event_frameIds):
+    """
+        Adjusts the frameIds for the offense, defense, and football DataFrames to allow for a zoom effect.
+        Args:
+            offense:
+            defense:
+            football:
+            event_frameIds: Dictionary with the frameId as the key and the zoom out amount as the value
+        Returns:
+            The altered offense, defense, and football DataFrames and dictionaries
+        """
+    # Create a starting event to each dataframe for first frameId. This allows separate zoom effect to start the play
+    frame_id = offense['frameId'].iloc[0]
+    event = 'start'
+
+    # Write the event to this first frameId in each dataframe
+    offense.loc[offense['frameId'] == frame_id, 'event'] = event
+    defense.loc[defense['frameId'] == frame_id, 'event'] = event
+    football.loc[football['frameId'] == frame_id, 'event'] = event
+
+    # Bump up all later frameIds by 20
+    [bump_up_frameIds(df, frame_id, 20) for df in [offense, defense, football]]
+
+    # Add 10 rows with consecutive frameIds to offense, defense, football
+    zoom_out_increases = [5, 10, 15, 20, 25, 28, 29, 30, 30, 30, 30, 30, 30, 29, 28, 25, 20, 15, 10, 5]
+    for i in range(1, 21):  # Uses 1 index to offset so zoom effect begins immediately AFTER the event
+        new_frame_id = frame_id + i
+        event_frameIds[new_frame_id] = (zoom_out_increases[i - 1], event)
+
+        # Duplicate rows of event timestep to offense, defense, football with incremented frameId value
+        offense = add_rows_with_incremented_frameId(offense, frame_id, new_frame_id)
+        defense = add_rows_with_incremented_frameId(defense, frame_id, new_frame_id)
+        football = add_rows_with_incremented_frameId(football, frame_id, new_frame_id)
+
+    return offense, defense, football, event_frameIds
+
+
+def adjust_frameIds_for_zoom_effect(offense, defense, football, event_frameIds):
+    """
+    Adjusts the frameIds for the offense, defense, and football DataFrames to allow for a zoom effect.
+    Args:
+        offense:
+        defense:
+        football:
+        event_frameIds: Dictionary with the frameId as the key and the zoom out amount as the value
+    Returns:
+        The altered offense, defense, and football DataFrames and dictionaries
+    """
+    zoomable_events = ['handoff', 'pass_arrived', 'tackle', 'touchdown']
+    events = offense['event'].unique()
+
+    for event in events:
+        if event in zoomable_events:
+            frame_id = offense[offense['event'] == event]['frameId'].iloc[0]
+
+            # Bump up all later frameIds by 10
+            [bump_up_frameIds(df, frame_id) for df in [offense, defense, football]]
+
+            # Add 10 rows with consecutive frameIds to offense, defense, football
+            zoom_out_increases = [5, 10, 13, 14, 15, 15, 14, 13, 10, 5]
+            for i in range(1, 11):  # Uses 1 index to offset so zoom effect begins immediately AFTER the event
+                new_frame_id = frame_id + i
+                event_frameIds[new_frame_id] = (zoom_out_increases[i - 1], event)
+
+                # Duplicate rows of event timestep to offense, defense, football with incremented frameId value
+                offense = add_rows_with_incremented_frameId(offense, frame_id, new_frame_id)
+                defense = add_rows_with_incremented_frameId(defense, frame_id, new_frame_id)
+                football = add_rows_with_incremented_frameId(football, frame_id, new_frame_id)
+
+    return offense, defense, football, event_frameIds
+
+
 # gameId, playId, week = 2022090800, 343, 1
 # play_df = load_play_data(gameId,playId,week)
 # game = load_game(gameId)

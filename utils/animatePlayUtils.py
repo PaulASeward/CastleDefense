@@ -53,52 +53,6 @@ def create_plot_statements_at_frameId(ax, frameId, team_df, team_color, plot_blo
     return patch
 
 
-def adjust_frameIds_for_zoom_effect(offense, defense, football, event_frameIds):
-    """
-    Adjusts the frameIds for the offense, defense, and football DataFrames to allow for a zoom effect.
-    Args:
-        offense:
-        defense:
-        football:
-        event_frameIds: Dictionary with the frameId as the key and the zoom out amount as the value
-    Returns:
-        The altered offense, defense, and football DataFrames and dictionaries
-    """
-    zoomable_events = ['ball_snap', 'handoff', 'pass_arrived', 'touchdown']
-    # Get the frameIds for each event
-    events = offense['event'].unique()
-    for event in events:
-        if event in zoomable_events:
-            frame_id = offense[offense['event'] == event]['frameId'].iloc[0]
-
-            # Bump up all later frameIds by 10
-            offense.loc[offense['frameId'] > frame_id, 'frameId'] += 10
-            defense.loc[defense['frameId'] > frame_id, 'frameId'] += 10
-            football.loc[football['frameId'] > frame_id, 'frameId'] += 10
-
-            # Add 10 rows with consecutive frameIds to offense, defense, football
-            zoom_out_increases = [5, 10, 13, 14, 15, 15, 14, 13, 10, 5]
-            for i in range(1, 11):  # Uses 1 index to offset so zoom effect begins immediately AFTER the event
-                new_frame_id = frame_id + i
-                event_frameIds[new_frame_id] = (zoom_out_increases[i - 1], event)
-
-                # Duplicate rows of timestep to offense, defense, football with incremented frameId value
-                offense_spacing_row = football[football['frameId'] == frame_id].iloc[0]
-                offense_spacing_row['frameId'] = new_frame_id
-
-                defense_spacing_row = football[football['frameId'] == frame_id].iloc[0]
-                defense_spacing_row['frameId'] = new_frame_id
-
-                football_spacing_row = football[football['frameId'] == frame_id].iloc[0]
-                football_spacing_row['frameId'] = new_frame_id
-
-                offense = pd.concat([offense, pd.DataFrame([offense_spacing_row])], ignore_index=True)
-                defense = pd.concat([defense, pd.DataFrame([defense_spacing_row])], ignore_index=True)
-                football = pd.concat([football, pd.DataFrame([football_spacing_row])], ignore_index=True)
-
-    return offense, defense, football, event_frameIds
-
-
 def center_view_on_football(ax, football_data, window_size=WINDOW_DISPLAY_SIZE):
     """
     Centers the view on the football through set_xlim() methods.
@@ -205,8 +159,10 @@ def save_animation(anim, animation_path):
     return
 
 
+# DEPRECATED
 def animate_play(playId, gameId, weekNumber, zoomed_view=False, plot_blockers=False, animation_path='animation.mp4'):
     """
+    Original and limited animated function. Does not allow for centering on the football or zooming out.
     Animates the movement of players and the football for a given play.
     Args:
         playId: Play Id to identify the play
@@ -262,8 +218,9 @@ def animate_func_play(playId, gameId, weekNumber, zoomed_view=False, plot_blocke
     play = get_play_by_id(gameId, playId)
     yardlineNumber, yardsToGo = get_los_details(play, offense)
 
-    event_frameIds = {}
+    event_frameIds = {}  # Key: frameId, Value: (window_size_increase, event_name)
     if zoom_effect_on_events:
+        offense, defense, football, event_frameIds = adjust_frameIds_for_initial_zoom(offense, defense, football, event_frameIds)
         offense, defense, football, event_frameIds = adjust_frameIds_for_zoom_effect(offense, defense, football, event_frameIds)
 
     # Display window
@@ -309,5 +266,5 @@ gameId, playId, week = 2022090800, 343, 1  # 2 Yard run
 #                   animation_path='animateFuncOffense.mp4')
 # animate_func_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=False, center_on_football=True,
 #                   animation_path='animateFuncOffense.mp4')
-# animate_func_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=False, center_on_football=True,
-#                   zoom_effect_on_events=True, animation_path='animateFuncOffense.mp4')
+animate_func_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=False, center_on_football=True,
+                  zoom_effect_on_events=True, animation_path='animateFuncOffense.mp4')

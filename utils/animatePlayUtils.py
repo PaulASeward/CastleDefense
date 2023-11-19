@@ -37,8 +37,7 @@ def create_plot_statements_at_frameId(ax, frameId, team_df, team_color, plot_blo
         patch.extend(create_plot_blocking_formation_statements(ax, frameId, blockers_df))
 
     for _, player in player_data.iterrows():
-        jersey_number_text = ax.text(player['x'], player['y'], int(player['jerseyNumber']), va='center', ha='center',
-                                     color='white', fontsize=10)
+        jersey_number_text = ax.text(player['x'], player['y'], int(player['jerseyNumber']), va='center', ha='center', color='white', fontsize=10)
 
         # Rotate the text based on player's orientation
         player_orientation = player['o'] if play_direction == 'left' else player['o'] + 180
@@ -47,8 +46,9 @@ def create_plot_statements_at_frameId(ax, frameId, team_df, team_color, plot_blo
 
         # Calculate and plot players' velocity vectors
         dx, dy = calculate_dx_dy(player['s'], player['dir'])
-        patch.append(
-            ax.arrow(player['x'], player['y'], dx, dy, color='grey', width=0.15, shape='full', label='VelocityVector'))
+        dx *= 0.5
+        dy *= 0.5  # Scale down the velocity vector to make it more visible
+        patch.append(ax.arrow(player['x'], player['y'], dx, dy, color='grey', width=0.15, shape='full', label='VelocityVector'))
 
     return patch
 

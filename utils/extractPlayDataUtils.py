@@ -265,7 +265,7 @@ def adjust_frameIds_for_initial_zoom(offense, defense, football, event_frameIds)
     [bump_up_frameIds(df, frame_id, 20) for df in [offense, defense, football]]
 
     # Add 10 rows with consecutive frameIds to offense, defense, football
-    zoom_out_increases = [5, 10, 15, 20, 25, 28, 29, 30, 30, 30, 30, 30, 30, 29, 28, 25, 20, 15, 10, 5]
+    zoom_out_increases = [45, 45, 45, 45, 39.5, 33.5, 28.0, 23.0, 18.5, 14.5, 11.0, 8.0, 5.5, 3.5, 2.0, 1.0, 0.5, 0.25, 0, 0]
     for i in range(1, 21):  # Uses 1 index to offset so zoom effect begins immediately AFTER the event
         new_frame_id = frame_id + i
         event_frameIds[new_frame_id] = (zoom_out_increases[i - 1], event)

@@ -34,7 +34,7 @@ def create_plot_statements_at_frameId(ax, frameId, team_df, team_color, plot_blo
 
     if plot_blockers:
         blockers_df = get_blocking_players(team_df)
-        patch.extend(create_plot_blocking_formation_statements(ax, frameId, blockers_df))
+        patch.extend(create_plot_statements_blocking_formation(ax, frameId, blockers_df))
 
     for _, player in player_data.iterrows():
         jersey_number_text = ax.text(player['x'], player['y'], int(player['jerseyNumber']), va='center', ha='center', color='white', fontsize=10, label='JerseyNumber')
@@ -51,6 +51,30 @@ def create_plot_statements_at_frameId(ax, frameId, team_df, team_color, plot_blo
         patch.append(ax.arrow(player['x'], player['y'], dx, dy, color='grey', width=0.15, shape='full', label='VelocityVector'))
 
     return patch
+
+
+def create_plot_statements_blocking_formation(ax, frameId, blockers_df, line_color='red'):
+    """
+    Creates the plot statements for the blocking formation.
+    Args:
+        ax: Matplotlib axis
+        frameId: integer timestep of play
+        blockers_df: DataFrame with only the blocking players
+        line_color: Red is best for visibility
+    """
+    plot_statements = []
+    blocker_df = blockers_df[blockers_df['frameId'] == frameId]
+    blocker_df = blocker_df.sort_values(by=['y'], ascending=[True])
+
+    for i in range(len(blocker_df) - 1):
+        blocker = blocker_df.iloc[i]
+        next_blocker = blocker_df.iloc[i + 1]
+
+        if next_blocker is not None:
+            plot_statements.extend(
+                ax.plot([blocker['x'], next_blocker['x']], [blocker['y'], next_blocker['y']], color=line_color, label='BlockingLine'))
+
+    return plot_statements
 
 
 def center_view_on_football(ax, football_data, window_size=WINDOW_DISPLAY_SIZE):
@@ -120,30 +144,6 @@ def animate_frameId(ax, frameId, offense, defense, football, event_frameIds=None
                          label="Football"))
 
     return patch
-
-
-def create_plot_blocking_formation_statements(ax, frameId, blockers_df, line_color='red'):
-    """
-    Creates the plot statements for the blocking formation.
-    Args:
-        ax: Matplotlib axis
-        frameId: integer timestep of play
-        blockers_df: DataFrame with only the blocking players
-        line_color: Red is best for visibility
-    """
-    plot_statements = []
-    blocker_df = blockers_df[blockers_df['frameId'] == frameId]
-    blocker_df = blocker_df.sort_values(by=['y'], ascending=[True])
-
-    for i in range(len(blocker_df) - 1):
-        blocker = blocker_df.iloc[i]
-        next_blocker = blocker_df.iloc[i + 1]
-
-        if next_blocker is not None:
-            plot_statements.extend(
-                ax.plot([blocker['x'], next_blocker['x']], [blocker['y'], next_blocker['y']], color=line_color, label='BlockingLine'))
-
-    return plot_statements
 
 
 def save_animation(anim, animation_path):

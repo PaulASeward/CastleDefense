@@ -37,12 +37,12 @@ def create_plot_statements_at_frameId(ax, frameId, team_df, team_color, plot_blo
         patch.extend(create_plot_statements_blocking_formation(ax, frameId, blockers_df))
 
     for _, player in player_data.iterrows():
-        jersey_number_text = ax.text(player['x'], player['y'], int(player['jerseyNumber']), va='center', ha='center', color='white', fontsize=10, label='JerseyNumber')
+        player_identifier_text = ax.text(player['x'], player['y'], player['playerDisplayIdentifier'], va='center', ha='center', color='white', fontsize=10, label='playerDisplayIdentifier')
 
         # Rotate the text based on player's orientation
         player_orientation = player['o'] if play_direction == 'left' else player['o'] + 180
-        jersey_number_text.set_rotation(player_orientation)
-        patch.append(jersey_number_text)
+        player_identifier_text.set_rotation(player_orientation)
+        patch.append(player_identifier_text)
 
         # Calculate and plot players' velocity vectors
         dx, dy = calculate_dx_dy(player['s'], player['dir'])
@@ -208,7 +208,7 @@ def animate_play(playId, gameId, weekNumber, zoomed_view=False, plot_blockers=Fa
 
 
 def animate_func_play(playId, gameId, weekNumber, zoomed_view=False, plot_blockers=False, center_on_football=False,
-                      zoom_effect_on_events=False, animation_path='animation.mp4'):
+                      zoom_effect_on_events=False, display_position=False, animation_path='animation.mp4'):
     """
     Animates the movement of players and the football for a given play using FuncAnimation.
     """
@@ -217,6 +217,9 @@ def animate_func_play(playId, gameId, weekNumber, zoomed_view=False, plot_blocke
     offense, defense, football = load_play(playId, gameId, weekNumber)
     play = get_play_by_id(gameId, playId)
     yardlineNumber, yardsToGo = get_los_details(play, offense)
+
+    # Assign player display identifier
+    offense, defense = assign_player_display_identifier(offense, defense, display_position=display_position)
 
     event_frameIds = {}  # Key: frameId, Value: (window_size_increase, event_name)
     if zoom_effect_on_events:
@@ -237,8 +240,9 @@ def animate_func_play(playId, gameId, weekNumber, zoomed_view=False, plot_blocke
         """
         # # Remove all texts, circles, arrows, and footballs from the previous frame unless it is a zoom event
         is_zoom_event = center_on_football and event_frameIds and frameId+1 in event_frameIds.keys()
-        if not is_zoom_event:
-            artists_to_remove = ax.findobj(match=lambda x: x.get_label() in ['Football', 'PlayerCircle', 'JerseyNumber', 'BlockingLine', 'VelocityVector'])
+        if not is_zoom_event:  # Do not remove the previous frame locations during zoom effect since the play is stopped
+            # Remove all texts, circles, arrows, and footballs from the previous frame on regular time-consuming events.
+            artists_to_remove = ax.findobj(match=lambda x: x.get_label() in ['Football', 'PlayerCircle', 'playerDisplayIdentifier', 'BlockingLine', 'VelocityVector'])
             [artist.remove() for artist in artists_to_remove]
 
         animate_frameId(ax, frameId + 1, offense=offense, defense=defense, football=football,
@@ -267,4 +271,4 @@ gameId, playId, week = 2022101609, 2504, 6  # Keneth Walker 21 Yard run
 # animate_func_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=False, center_on_football=True,
 #                   animation_path='animateFuncOffense.mp4')
 animate_func_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=False, center_on_football=True,
-                  zoom_effect_on_events=True, animation_path='animateFuncOffense.mp4')
+                  zoom_effect_on_events=True, display_position=False, animation_path='animateFuncOffense.mp4')

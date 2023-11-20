@@ -215,6 +215,32 @@ def calculate_dx_dy(speed, angle):
     return dx, dy
 
 
+def assign_player_display_identifier(offense, defense, display_position):
+    """
+    Assigns playerDisplayIdentifier based on the chosen display mode (jersey number or position).
+    Args:
+        offense (pd.DataFrame): DataFrame for the offensive players.
+        defense (pd.DataFrame): DataFrame for the defensive players.
+        display_position (bool): Indicates whether to display players by position.
+    Returns:
+        pd.DataFrame: Altered offense dataframe.
+        pd.DataFrame: Altered defense dataframe.
+    """
+    if display_position:
+        offense_players_df = get_players_by_ids(offense['nflId'].unique().tolist())
+        offense = pd.merge(offense, offense_players_df[['nflId', 'position']], on='nflId', how='left')
+        offense['playerDisplayIdentifier'] = offense['position']
+
+        defense_players_df = get_players_by_ids(defense['nflId'].unique().tolist())
+        defense = pd.merge(defense, defense_players_df[['nflId', 'position']], on='nflId', how='left')
+        defense['playerDisplayIdentifier'] = defense['position']
+    else:
+        offense['playerDisplayIdentifier'] = offense['jerseyNumber'].astype(int)
+        defense['playerDisplayIdentifier'] = defense['jerseyNumber'].astype(int)
+
+    return offense, defense
+
+
 def bump_up_frameIds(df, frame_id, increment=10):
     """
     Bumps up all frameIds after a specific frameId by a given increment.

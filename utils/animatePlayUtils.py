@@ -1,6 +1,7 @@
 from CastleDefense.utils.extractPlayDataUtils import *
 from CastleDefense.utils.visualizeFieldUtils import *
 import matplotlib.pyplot as plt
+from matplotlib.markers import MarkerStyle
 from matplotlib import animation
 from matplotlib.animation import FFMpegWriter, FuncAnimation
 import warnings
@@ -30,19 +31,22 @@ def create_plot_statements_at_frameId(ax, frameId, team_df, team_color, plot_blo
     player_data = team_df.query('frameId == ' + str(frameId))
     play_direction = player_data['playDirection'].iloc[0]
 
-    patch.extend(ax.plot(player_data['x'], player_data['y'], 'o', c=team_color, ms=13, label='PlayerCircle'))
-
     if plot_blockers:
         blockers_df = get_blocking_players(team_df)
         patch.extend(create_plot_statements_blocking_formation(ax, frameId, blockers_df))
 
     for _, player in player_data.iterrows():
-        player_identifier_text = ax.text(player['x'], player['y'], player['playerDisplayIdentifier'], va='center', ha='center', color='white', fontsize=10, label='playerDisplayIdentifier')
+        # Use Text to display the player's jersey number or position as identifier
+        patch.append(ax.text(player['x'], player['y'], player['playerDisplayIdentifier'], va='center', ha='center', color='white', fontsize=10, label='playerDisplayIdentifier'))
 
-        # Rotate the text based on player's orientation
-        player_orientation = player['o'] if play_direction == 'left' else player['o'] + 180
-        player_identifier_text.set_rotation(player_orientation)
-        patch.append(player_identifier_text)
+        player_orientation_degree = player['o'] if play_direction == 'left' else player['o'] + 180
+
+        # Use a custom marker to display the player's orientation
+        # TODO: Create/import svg file for the player marker. Insipiration: https://twitter.com/SethWalder
+        custom_player_marker = MarkerStyle(r'$D$')
+        custom_player_marker._transform.rotate_deg(player_orientation_degree+90)
+
+        patch.append(ax.plot(player['x'], player['y'], "ro", marker=custom_player_marker, c=team_color, ms=14, label='PlayerCircle'))
 
         # Calculate and plot players' velocity vectors
         dx, dy = calculate_dx_dy(player['s'], player['dir'])
@@ -212,8 +216,9 @@ def animate_func_play(playId, gameId, weekNumber, zoomed_view=False, plot_blocke
     """
     Animates the movement of players and the football for a given play using FuncAnimation.
     """
-    # Load play dataframes
     plt.close()
+
+    # Load play dataframes
     offense, defense, football = load_play(playId, gameId, weekNumber)
     play = get_play_by_id(gameId, playId)
     yardlineNumber, yardsToGo = get_los_details(play, offense)

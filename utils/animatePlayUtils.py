@@ -37,7 +37,7 @@ def create_plot_statements_at_frameId(ax, frameId, team_df, team_color, plot_blo
         patch.extend(create_plot_blocking_formation_statements(ax, frameId, blockers_df))
 
     for _, player in player_data.iterrows():
-        jersey_number_text = ax.text(player['x'], player['y'], int(player['jerseyNumber']), va='center', ha='center', color='white', fontsize=10)
+        jersey_number_text = ax.text(player['x'], player['y'], int(player['jerseyNumber']), va='center', ha='center', color='white', fontsize=10, label='JerseyNumber')
 
         # Rotate the text based on player's orientation
         player_orientation = player['o'] if play_direction == 'left' else player['o'] + 180
@@ -61,8 +61,6 @@ def center_view_on_football(ax, football_data, window_size=WINDOW_DISPLAY_SIZE):
         football_data: DataFrame with only the football
         window_size: The size of the window to display around the football
     """
-    # TODO: Clip the mins and max to the boundaries of the field using min and max functions
-
     x_min = football_data['x'].iloc[0] - window_size
     x_max = football_data['x'].iloc[0] + window_size
     y_min = football_data['y'].iloc[0] - window_size
@@ -238,7 +236,7 @@ def animate_func_play(playId, gameId, weekNumber, zoomed_view=False, plot_blocke
         # # Remove all texts, circles, arrows, and footballs from the previous frame unless it is a zoom event
         is_zoom_event = center_on_football and event_frameIds and frameId+1 in event_frameIds.keys()
         if not is_zoom_event:
-            artists_to_remove = ax.texts + ax.findobj(match=lambda x: x.get_label() in ['Football', 'PlayerCircle', 'BlockingLine', 'VelocityVector'])
+            artists_to_remove = ax.findobj(match=lambda x: x.get_label() in ['Football', 'PlayerCircle', 'JerseyNumber', 'BlockingLine', 'VelocityVector'])
             [artist.remove() for artist in artists_to_remove]
 
         animate_frameId(ax, frameId + 1, offense=offense, defense=defense, football=football,

@@ -276,4 +276,4 @@ gameId, playId, week = 2022101609, 2504, 6  # Keneth Walker 21 Yard run
 # animate_func_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=False, center_on_football=True,
 #                   animation_path='animateFuncOffense.mp4')
 animate_func_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=False, center_on_football=True,
-                  zoom_effect_on_events=True, display_position=False, animation_path='animateFuncOffense.mp4')
+                  zoom_effect_on_events=True, display_position=True, animation_path='animateFuncOffense.mp4')

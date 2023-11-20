@@ -132,8 +132,10 @@ def create_football_field(boxed_view=None,
     y_max = max(10.0, min(NFL_FIELD_HEIGHT, boxed_view[3]))  # clipping 10 < field_height < 53.3
     x_min = min(x_max - 10.0, max(0, boxed_view[0]))
     y_min = min(y_max - 10.0, max(0, boxed_view[1]))
-    field_height = y_max - y_min
-    field_width = x_max - x_min
+    # field_height = y_max - y_min
+    # field_width = x_max - x_min
+    field_height = NFL_FIELD_HEIGHT  # Default to full field view since we are using sliding viewing window
+    field_width = NFL_FIELD_WIDTH
 
     figsize = (field_width / 10, (field_height + 10) / 10)  # Allow larger vertical spacing for titles in figure
     fig, ax = plt.subplots(1, figsize=figsize)

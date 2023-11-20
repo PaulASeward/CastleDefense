@@ -48,7 +48,7 @@ def create_plot_statements_at_frameId(ax, frameId, team_df, team_color, plot_blo
         dx, dy = calculate_dx_dy(player['s'], player['dir'])
         dx *= 0.5
         dy *= 0.5  # Scale down the velocity vector to make it more visible
-        patch.append(ax.arrow(player['x'], player['y'], dx, dy, color='grey', width=0.15, shape='full', label='VelocityVector'))
+        patch.append(ax.arrow(player['x'], player['y'], dx, dy, color='grey', width=0.15, shape='full', alpha=0.5, label='VelocityVector'))
 
     return patch
 
@@ -130,6 +130,8 @@ def animate_frameId(ax, frameId, offense, defense, football, event_frameIds=None
         if event_frameIds and frameId in event_frameIds.keys():
             zoom_effect(ax, frameId, football_data, event_frameIds)  # Zoom out and back in to give context of the play
             return patch
+        elif frameId == football['frameId'].min():
+            center_view_on_football(ax, football_data, window_size=INITIAL_ZOOM_OUT_WINDOW)
         else:
             center_view_on_football(ax, football_data)  # Center the view on the football
 
@@ -222,7 +224,7 @@ def animate_func_play(playId, gameId, weekNumber, zoomed_view=False, plot_blocke
         offense, defense, football, event_frameIds = adjust_frameIds_for_zoom_effect(offense, defense, football, event_frameIds)
 
     # Display window
-    boxed_view = get_player_max_locations(offense, defense, football) if zoomed_view else None
+    boxed_view = get_player_max_locations(offense, defense, football) if zoomed_view and not center_on_football else None
 
     # Create field to animate upon
     fig, ax = create_football_field(boxed_view=boxed_view, line_of_scrimmage=yardlineNumber, yards_to_go=yardsToGo)
@@ -256,9 +258,9 @@ def animate_func_play(playId, gameId, weekNumber, zoomed_view=False, plot_blocke
     return anim
 
 
-# gameId, playId, week = 2022101609, 2504, 6  # Keneth Walker 21 Yard run
+gameId, playId, week = 2022101609, 2504, 6  # Keneth Walker 21 Yard run
 # gameId, playId, week = 2022100908,3537, 5  # 9 Yard catch by P.Hesse
-gameId, playId, week = 2022090800, 343, 1  # 2 Yard run
+# gameId, playId, week = 2022090800, 343, 1  # 2 Yard run
 
 # animate_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=False,
 #                   animation_path='animateFuncOffense.mp4')

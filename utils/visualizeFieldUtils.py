@@ -137,10 +137,12 @@ def create_football_field(boxed_view=None,
 
     x_max = max(10.0, min(NFL_FIELD_WIDTH, boxed_view[2]))  # clipping 10 < field_width < 120
     y_max = max(10.0, min(NFL_FIELD_HEIGHT, boxed_view[3]))  # clipping 10 < field_height < 53.3
-    x_min = min(x_max-10.0, max(0, boxed_view[0]))
-    y_min = min(y_max-10.0, max(0, boxed_view[1]))
-    field_height = y_max - y_min
-    field_width = x_max - x_min
+    x_min = min(x_max - 10.0, max(0, boxed_view[0]))
+    y_min = min(y_max - 10.0, max(0, boxed_view[1]))
+    # field_height = y_max - y_min
+    # field_width = x_max - x_min
+    field_height = NFL_FIELD_HEIGHT  # Default to full field view since we are using sliding viewing window
+    field_width = NFL_FIELD_WIDTH
 
     figsize = (field_width / 10, (field_height + 10) / 10)  # Allow larger vertical spacing for titles in figure
     fig, ax = plt.subplots(1, figsize=figsize)
@@ -175,44 +177,41 @@ def create_football_field(boxed_view=None,
     return fig, ax
 
 
-def plot_tracked_movements(ht_df, at_df, ft_df, description=None, zoomed_view=True, plot_blockers=False):
+def plot_player_locations(offense, defense, football, description=None, zoomed_view=True, plot_blockers=False):
     """
-    Plots the tracked movements from available play data.
-
-    :return:
-
+    Plots the player locations for a single play.
     Args:
         description: Description of the play
-        ht_df: Home team data frame
-        at_df: Away team data frame
-        ft_df: Football data frame
+        offense: Home team data frame
+        defense: Away team data frame
+        football: Football data frame
         zoomed_view: Zooms in on the play
     """
     plt.close()
-    play = get_play_by_id(ht_df['gameId'].iloc[0], ht_df['playId'].iloc[0])
+    play = get_play_by_id(offense['gameId'].iloc[0], offense['playId'].iloc[0])
 
-    line_of_scrimmage, yards_to_go = get_los_details(play)
-    boxed_view = get_player_max_locations(ht_df, at_df, ft_df) if zoomed_view else None
+    line_of_scrimmage, yards_to_go = get_los_details(play, offense)
+    boxed_view = get_player_max_locations(offense, defense, football) if zoomed_view else None
 
-    fig, ax = create_football_field(boxed_view=boxed_view, line_of_scrimmage=line_of_scrimmage, yards_to_go=yards_to_go, field_color='darkgreen', line_color='white')
+    fig, ax = create_football_field(boxed_view=boxed_view, line_of_scrimmage=line_of_scrimmage, yards_to_go=yards_to_go,
+                                    field_color='green', line_color='white')
 
-    ht_name = ht_df['club'].iloc[0]
-    at_name = at_df['club'].iloc[0]
-
-    ht_df.plot(x='y', y='x', kind='scatter', ax=ax, color='orange', s=30, label=ht_name)
-    at_df.plot(x='y', y='x', kind='scatter', ax=ax, color='blue', s=30, label=at_name)
-    ft_df.plot(x='y', y='x', kind='scatter', ax=ax, color='brown', s=30, label='football')
-
-    if plot_blockers:
-        plot_blocking_formation(ax, ht_df, 'red')
-
-    gameId = ht_df['gameId'].iloc[0]
-    playId = ht_df['playId'].iloc[0]
+    ht_name = offense['club'].iloc[0]
+    at_name = defense['club'].iloc[0]
+    gameId = offense['gameId'].iloc[0]
+    playId = offense['playId'].iloc[0]
 
     title = f'{ht_name} vs. {at_name}: Game #{gameId} Play #{playId}'
-
     if description is not None:
         title += f' ({description})'
+
+    offense.plot(x='y', y='x', kind='scatter', ax=ax, color='orangered', s=10, label=ht_name)
+    defense.plot(x='y', y='x', kind='scatter', ax=ax, color='blue', s=10, label=at_name)
+    football.plot(x='y', y='x', kind='scatter', ax=ax, color='brown', s=15, label='football')
+
+    if plot_blockers:
+        blockers_df = get_blocking_players(offense)
+        plot_blocking_formation(ax, blockers_df, 'red')
 
     plt.title(title)
     plt.legend()
@@ -221,42 +220,51 @@ def plot_tracked_movements(ht_df, at_df, ft_df, description=None, zoomed_view=Tr
 
 def plot_play_events(playId, gameId, week, zoomed_view=False, plot_blockers=False):
     """
-    Plots all events for a single play.
-    :param playId:
-    :param gameId:
-    :param week:
-    :return:
+    Plots the discrete events for a single play as seperate diagrams.
+    Args:
+        playId: identifies the play and game
+        gameId:
+        week:
+        zoomed_view: Zooms in on the play
+        plot_blockers: Displays red line connnecting eligible blockers
     """
-    play_df = load_play_data(playId, gameId, week)
-    team_1, team_2, football = load_teams_from_play(play_df)
+    # Load play dataframes
+    offense, defense, football = load_play(playId, gameId, week)
 
-    events = play_df['event'].unique()
+    events = offense['event'].unique()
     events = [event for event in events if not pd.isna(event)]
 
     for event in events:
-        ht = team_1[team_1['event'] == event]
-        at = team_2[team_2['event'] == event]
+        off = offense[offense['event'] == event]
+        df = defense[defense['event'] == event]
         ft = football[football['event'] == event]
 
-        plot_tracked_movements(ht, at, ft, description=event, zoomed_view=zoomed_view, plot_blockers=plot_blockers)
+        plot_player_locations(off, df, ft, description=event, zoomed_view=zoomed_view, plot_blockers=plot_blockers)
 
 
 def plot_play_tracked_movements(playId, gameId, week, zoomed_view=False):
     """
-    Plots the tracked movements for a single play.
-    :param playId:
-    :param gameId:
-    :param week:
-    :return:
+     Plots the tracked movements from one play. This visualizes the path of each player that they travelled on a certain play.
+    Args:
+        playId: identifier for the play and game
+        gameId:
+        week:
+        zoomed_view: Displays zoome in window of the play
     """
-    play_df = load_play_data(playId, gameId, week)
-    team_1, team_2, football = load_teams_from_play(play_df)
+    # Load play dataframes
+    offense, defense, football = load_play(playId, gameId, week)
 
-    plot_tracked_movements(team_1, team_2, football, zoomed_view=zoomed_view)
+    plot_player_locations(offense, defense, football, zoomed_view=zoomed_view)
 
 
-def plot_blocking_formation(ax, ht_df, line_color):
-    blocker_df = get_blocking_players(ht_df)
+def plot_blocking_formation(ax, blocker_df, line_color='red'):
+    """
+    Plots a line between eligble blockers resembling the blocking formation for a play.
+    Args:
+        ax: Matplotlib axis
+        blocker_df: DataFrame with only the blocking players
+        line_color: Color of the line.
+    """
     blocker_df = blocker_df.sort_values(by=['y'], ascending=[True])
 
     for i in range(len(blocker_df) - 1):
@@ -268,138 +276,14 @@ def plot_blocking_formation(ax, ht_df, line_color):
 
     return ax
 
-###################
-# Animating PLayers Movement: https://www.kaggle.com/code/ar2017/nfl-big-data-bowl-2021-animating-players-movement
-###################
-def animate_player_movement(playId, gameId, weekNumber, zoomed_view=False):
-    """
-    Animates player movement for a specific play.
-    :param weekNumber:
-    :param playId:
-    :param gameId:
-    :return:
-    """
-    play_df = load_play_data(playId, gameId, weekNumber)
-    playHome, playAway, playFootball = load_teams_from_play(play_df)
-    boxed_view = get_player_max_locations(playHome, playAway, playFootball) if zoomed_view else None
-
-    play = get_play_by_id(gameId, playId)
-
-    playHome['time'] = playHome['time'].apply(lambda x: dateutil.parser.parse(x).timestamp()).rank(method='dense')
-    playAway['time'] = playAway['time'].apply(lambda x: dateutil.parser.parse(x).timestamp()).rank(method='dense')
-    playFootball['time'] = playFootball['time'].apply(lambda x: dateutil.parser.parse(x).timestamp()).rank(
-        method='dense')
-
-    maxTime = int(playAway['time'].unique().max())
-    minTime = int(playAway['time'].unique().min())
-    playDir = playHome.sample(1)['playDirection'].item()
-
-    yardlineNumber, yardsToGo = get_los_details(play)
-    absoluteYardlineNumber = play['absoluteYardlineNumber'].item() - 10
-
-    if (absoluteYardlineNumber > 50):
-        yardlineNumber = 100 - yardlineNumber
-    if (absoluteYardlineNumber <= 50):
-        yardlineNumber = yardlineNumber
-
-    if (playDir == 'left'):
-        yardsToGo = -yardsToGo
-    else:
-        yardsToGo = yardsToGo
-
-    fig, ax = create_football_field(boxed_view=boxed_view, line_of_scrimmage=yardlineNumber, yards_to_go=yardsToGo)
-
-    playDesc = play['playDescription'].item()
-    plt.title(f'Game # {gameId} Play # {playId} \n {playDesc}')
-
-    def update_animation(time):
-        patch = []
-
-        # Home players' location
-        homeX = playHome.query('time == ' + str(time))['x']
-        homeY = playHome.query('time == ' + str(time))['y']
-        homeNum = playHome.query('time == ' + str(time))['jerseyNumber']
-        homeOrient = playHome.query('time == ' + str(time))['o']
-        homeDir = playHome.query('time == ' + str(time))['dir']
-        homeSpeed = playHome.query('time == ' + str(time))['s']
-        patch.extend(plt.plot(homeX, homeY, 'o', c='gold', ms=20, mec='white'))
-
-        # Home players' jersey number
-        for x, y, num in zip(homeX, homeY, homeNum):
-            patch.append(plt.text(x, y, int(num), va='center', ha='center', color='black', size='medium'))
-
-        # Home players' orientation
-        for x, y, orient in zip(homeX, homeY, homeOrient):
-            dx, dy = calculate_dx_dy(x, y, orient, 1, 1)
-            patch.append(plt.arrow(x, y, dx, dy, color='gold', width=0.5, shape='full'))
-
-        # Home players' direction
-        for x, y, direction, speed in zip(homeX, homeY, homeDir, homeSpeed):
-            dx, dy = calculate_dx_dy(x, y, direction, speed, 1)
-            patch.append(plt.arrow(x, y, dx, dy, color='black', width=0.25, shape='full'))
-
-        # Away players' location
-        awayX = playAway.query('time == ' + str(time))['x']
-        awayY = playAway.query('time == ' + str(time))['y']
-        awayNum = playAway.query('time == ' + str(time))['jerseyNumber']
-        awayOrient = playAway.query('time == ' + str(time))['o']
-        awayDir = playAway.query('time == ' + str(time))['dir']
-        awaySpeed = playAway.query('time == ' + str(time))['s']
-        patch.extend(plt.plot(awayX, awayY, 'o', c='orangered', ms=20, mec='white'))
-
-        # Away players' jersey number
-        for x, y, num in zip(awayX, awayY, awayNum):
-            patch.append(plt.text(x, y, int(num), va='center', ha='center', color='white', size='medium'))
-
-        # Away players' orientation
-        for x, y, orient in zip(awayX, awayY, awayOrient):
-            dx, dy = calculate_dx_dy(x, y, orient, 1, 1)
-            patch.append(plt.arrow(x, y, dx, dy, color='orangered', width=0.5, shape='full'))
-
-        # Away players' direction
-        for x, y, direction, speed in zip(awayX, awayY, awayDir, awaySpeed):
-            dx, dy = calculate_dx_dy(x, y, direction, speed, 1)
-            patch.append(plt.arrow(x, y, dx, dy, color='black', width=0.25, shape='full'))
-
-        # Footballs' location
-        football_data = playFootball.query('time == ' + str(time))['club']
-        footballX = playFootball.query('time == ' + str(time))['x']
-        footballY = playFootball.query('time == ' + str(time))['y']
-        patch.extend(plt.plot(footballX, footballY, 'o', c='black', ms=10, mec='white',
-                              data=football_data))
-
-        return patch
-
-    ims = [[]]
-    for time in np.arange(minTime, maxTime + 1):
-        patch = update_animation(time)
-        ims.append(patch)
-
-    anim = animation.ArtistAnimation(fig, ims, repeat=False)
-
-    return anim
-
-
-def save_animation(anim, animation_path):
-    """
-    May need ffmpeg installed and added to system PATH
-
-    Saves the animation to a file.
-    :param anim:
-    :param animation_path:
-    :return:
-    """
-    anim.save(animation_path, writer=FFMpegWriter(fps=10))
-    return
-
 
 gameId, playId, week = 2022090800, 343, 1
 
 # create_football_field(boxed_view=(0,0,80,NFL_FIELD_HEIGHT), line_of_scrimmage=10, yards_to_go=10)
 # plt.show()
 
-plot_play_events(playId, gameId, week, plot_blockers=True)
+# plot_play_events(playId, gameId, week, plot_blockers=True)
 # plot_play_tracked_movements(playId, gameId, week)
 
-# anim = animate_player_movement(gameId=gameId, playId=playId, weekNumber=week)
-# save_animation(anim, 'animate.mp4')
+# anim = animate_player_movement(gameId=gameId, playId=playId, weekNumber=week, plot_blockers=True)
+# save_animation(anim, 'animateOffense.mp4')

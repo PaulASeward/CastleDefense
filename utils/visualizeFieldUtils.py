@@ -1,4 +1,4 @@
-from utils.extractPlayDataUtils import *
+from CastleDefense.utils.extractPlayDataUtils import *
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib import animation
@@ -18,8 +18,6 @@ def plot_field_lines(ax, line_color='white'):
     Args:
         line_color: Color of the field lines, default white
         ax: Subplot to plot on
-
-    Returns:
     """
     field_height = NFL_FIELD_HEIGHT  # need to rename the field_width variable done
     x_coord_lines = [0]

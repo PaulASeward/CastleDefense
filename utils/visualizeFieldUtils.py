@@ -111,8 +111,8 @@ def plot_linenumbers(ax, line_color='white'):
 def create_football_field(boxed_view=None,
                           line_of_scrimmage=None,
                           yards_to_go=None,
-                          v_padding=10,
-                          h_padding=10,
+                          v_padding=5,
+                          h_padding=5,
                           field_color='darkgreen',
                           line_color='white'):
     """
@@ -129,6 +129,19 @@ def create_football_field(boxed_view=None,
     Returns:
 
     """
+    # Example: boxed_view = (x_min, y_min, x_max, y_max)
+#                         = (0, 0, 32, 6)
+
+#                                        y_max = 6
+#               ################################# x_max = 32
+#               #                               #
+#               #                               #
+#               #                               #
+#               #                               #
+#               #                               #
+#       y_min=0 #################################
+#               x_min = 0
+
     if boxed_view is None:
         boxed_view = (0, 0, NFL_FIELD_WIDTH, NFL_FIELD_HEIGHT)
 

@@ -8,7 +8,6 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Constants for NFL field dimensions
-
 NFL_FIELD_HEIGHT = 120
 NFL_FIELD_WIDTH = 53.3
 
@@ -164,9 +163,9 @@ def create_football_field(boxed_view=None,
     plot_hashmarks(ax, line_color=line_color)
 
     if line_of_scrimmage:
-        hl = line_of_scrimmage + 10
-        ax.plot([NFL_FIELD_WIDTH, 0], [hl, hl], color='yellow')
-        ax.text(hl - 8, NFL_FIELD_HEIGHT - 3, 'L.O.S. ->', fontsize=10, color='yellow')
+        los = line_of_scrimmage + 10
+        ax.plot([0, NFL_FIELD_WIDTH], [los, los], color='yellow')
+        ax.text(3, los - 2, 'L.O.S.', fontsize=10, color='yellow')
 
     if yards_to_go and line_of_scrimmage:
         fl = line_of_scrimmage + 10 + yards_to_go
@@ -277,8 +276,8 @@ def plot_blocking_formation(ax, blocker_df, line_color='red'):
 
 gameId, playId, week = 2022090800, 343, 1
 
-# create_football_field(boxed_view=(0,0,80,NFL_FIELD_HEIGHT), line_of_scrimmage=10, yards_to_go=10)
-# plt.show()
+create_football_field(boxed_view=(0,0,80,NFL_FIELD_HEIGHT), line_of_scrimmage=10, yards_to_go=10)
+plt.show()
 
 # plot_play_events(playId, gameId, week, plot_blockers=True)
 # plot_play_tracked_movements(playId, gameId, week)

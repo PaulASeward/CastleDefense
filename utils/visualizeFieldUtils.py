@@ -149,8 +149,10 @@ def create_football_field(boxed_view=None,
     y_max = max(10.0, min(NFL_FIELD_HEIGHT, boxed_view[3]))  # clipping 10 < field_height < 53.3
     x_min = min(x_max - 10.0, max(0, boxed_view[0]))
     y_min = min(y_max - 10.0, max(0, boxed_view[1]))
+
     # field_height = y_max - y_min
     # field_width = x_max - x_min
+
     field_height = NFL_FIELD_HEIGHT  # Default to full field view since we are using sliding viewing window
     field_width = NFL_FIELD_WIDTH
 
@@ -181,8 +183,8 @@ def create_football_field(boxed_view=None,
         ax.text(3, los - 2, 'L.O.S.', fontsize=10, color='yellow')
 
     if yards_to_go and line_of_scrimmage:
-        fl = line_of_scrimmage + 10 + yards_to_go
-        ax.plot([0, NFL_FIELD_WIDTH], [fl, fl], color='yellow')
+        first_down_line = line_of_scrimmage + 10 + yards_to_go
+        ax.plot([0, NFL_FIELD_WIDTH], [first_down_line, first_down_line], color='yellow')
 
     return fig, ax
 

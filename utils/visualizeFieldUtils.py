@@ -5,6 +5,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Constants for NFL field dimensions
+
 NFL_FIELD_HEIGHT = 53.3
 NFL_FIELD_WIDTH = 120
 

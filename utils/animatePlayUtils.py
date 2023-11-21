@@ -6,7 +6,6 @@ from matplotlib import animation
 from matplotlib.animation import FFMpegWriter, FuncAnimation
 import warnings
 warnings.filterwarnings('ignore')
-
 WINDOW_DISPLAY_SIZE = 6
 
 

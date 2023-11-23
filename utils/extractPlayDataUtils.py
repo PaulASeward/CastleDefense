@@ -6,6 +6,7 @@ import dateutil
 
 INITIAL_ZOOM_OUT_WINDOW = 45
 
+
 def load_play(playId, gameId, week=1):
     """
     Uses facade method to call other loading methods for a play
@@ -18,7 +19,22 @@ def load_play(playId, gameId, week=1):
     play = get_play_by_id(gameId, playId)
     play_df = load_play_data(playId, gameId, week)
     offense, defense, football = load_teams_from_play(play_df, play, gameId)
+
     return offense, defense, football
+
+
+def flip_play_direction(df):
+    """
+    Flips the play direction of a play
+    Args:
+        df: The play dataframe
+    Returns: The flipped play dataframe with x and y coordinates flipped
+    """
+    x, y = df['x'], df['y']
+    df['x'] = y
+    df['y'] = x
+
+    return df
 
 
 def load_play_data(play_id, game_id, week=1):
@@ -35,7 +51,6 @@ def load_play_data(play_id, game_id, week=1):
 
     Example usage: play_data = load_play_data(12345, game_id=2022090801, week=2)
     """
-
     data_path = os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'tracking_data')), 'tracking_week_' + str(week) + '.csv')
     week_df = pd.read_csv(data_path)
     play_df = week_df.query(f'gameId == {game_id} and playId == {play_id}')
@@ -71,7 +86,7 @@ def load_game(game_id):
     return game_df
 
 
-def load_teams_from_play(play_df, play, gameId):
+def load_teams_from_play(play_df, play, gameId, vertical_field=True):
     """
     Extracts team data from a play DataFrame.
 
@@ -96,6 +111,11 @@ def load_teams_from_play(play_df, play, gameId):
     ft_df = play_df[play_df['club'] == 'football']
     off_df = play_df[play_df['club'] == offense_team]
     def_df = play_df[play_df['club'] == defense_team]
+
+    if vertical_field:
+        off_df = flip_play_direction(off_df)
+        def_df = flip_play_direction(def_df)
+        ft_df = flip_play_direction(ft_df)
 
     # Sort teams by timesteps:
     ft_df = ft_df.sort_values(by='frameId', ascending=True)
@@ -292,7 +312,7 @@ def adjust_frameIds_for_initial_zoom(offense, defense, football, event_frameIds)
     [bump_up_frameIds(df, frame_id, 20) for df in [offense, defense, football]]
 
     # Add 10 rows with consecutive frameIds to offense, defense, football
-    zoom_out_increases = [45, 45, 45, 45, 39.5, 33.5, 28.0, 23.0, 18.5, 14.5, 11.0, 8.0, 5.5, 3.5, 2.0, 1.0, 0.5, 0.25, 0, 0]
+    zoom_out_increases = [INITIAL_ZOOM_OUT_WINDOW, 45, 45, 45, 39.5, 33.5, 28.0, 23.0, 18.5, 14.5, 11.0, 8.0, 5.5, 3.5, 2.0, 1.0, 0.5, 0.25, 0, 0]
     for i in range(1, 21):  # Uses 1 index to offset so zoom effect begins immediately AFTER the event
         new_frame_id = frame_id + i
         event_frameIds[new_frame_id] = (zoom_out_increases[i-1], event)

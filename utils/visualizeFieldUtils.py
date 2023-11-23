@@ -1,16 +1,13 @@
 from CastleDefense.utils.extractPlayDataUtils import *
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from matplotlib import animation
-import dateutil
-from matplotlib.animation import FFMpegWriter
 import warnings
 warnings.filterwarnings('ignore')
 
 # Constants for NFL field dimensions
-
 NFL_FIELD_HEIGHT = 120
 NFL_FIELD_WIDTH = 53.3
+
 
 def plot_field_lines(ax, line_color='white'):
     """
@@ -112,8 +109,8 @@ def plot_linenumbers(ax, line_color='white'):
 def create_football_field(boxed_view=None,
                           line_of_scrimmage=None,
                           yards_to_go=None,
-                          v_padding=10,
-                          h_padding=10,
+                          v_padding=0,
+                          h_padding=0,
                           field_color='darkgreen',
                           line_color='white'):
     """
@@ -130,6 +127,19 @@ def create_football_field(boxed_view=None,
     Returns:
 
     """
+    # Example: boxed_view = (x_min, y_min, x_max, y_max)
+#                         = (0, 0, 32, 6)
+
+#                                        y_max = 6
+#               ################################# x_max = 32
+#               #                               #
+#               #                               #
+#               #                               #
+#               #                               #
+#               #                               #
+#       y_min=0 #################################
+#               x_min = 0
+
     if boxed_view is None:
         boxed_view = (0, 0, NFL_FIELD_WIDTH, NFL_FIELD_HEIGHT)
 
@@ -137,8 +147,10 @@ def create_football_field(boxed_view=None,
     y_max = max(10.0, min(NFL_FIELD_HEIGHT, boxed_view[3]))  # clipping 10 < field_height < 53.3
     x_min = min(x_max - 10.0, max(0, boxed_view[0]))
     y_min = min(y_max - 10.0, max(0, boxed_view[1]))
+
     # field_height = y_max - y_min
     # field_width = x_max - x_min
+
     field_height = NFL_FIELD_HEIGHT  # Default to full field view since we are using sliding viewing window
     field_width = NFL_FIELD_WIDTH
 
@@ -164,13 +176,13 @@ def create_football_field(boxed_view=None,
     plot_hashmarks(ax, line_color=line_color)
 
     if line_of_scrimmage:
-        hl = line_of_scrimmage + 10
-        ax.plot([NFL_FIELD_WIDTH, 0], [hl, hl], color='yellow')
-        ax.text(hl - 8, NFL_FIELD_HEIGHT - 3, 'L.O.S. ->', fontsize=10, color='yellow')
+        los = line_of_scrimmage + 10
+        ax.plot([0, NFL_FIELD_WIDTH], [los, los], color='yellow')
+        ax.text(3, los - 2, 'L.O.S.', fontsize=10, color='yellow')
 
     if yards_to_go and line_of_scrimmage:
-        fl = line_of_scrimmage + 10 + yards_to_go
-        ax.plot([0, NFL_FIELD_WIDTH], [fl, fl], color='yellow')
+        first_down_line = line_of_scrimmage + 10 + yards_to_go
+        ax.plot([0, NFL_FIELD_WIDTH], [first_down_line, first_down_line], color='yellow')
 
     return fig, ax
 
@@ -203,9 +215,9 @@ def plot_player_locations(offense, defense, football, description=None, zoomed_v
     if description is not None:
         title += f' ({description})'
 
-    offense.plot(x='y', y='x', kind='scatter', ax=ax, color='orangered', s=10, label=ht_name)
-    defense.plot(x='y', y='x', kind='scatter', ax=ax, color='blue', s=10, label=at_name)
-    football.plot(x='y', y='x', kind='scatter', ax=ax, color='brown', s=15, label='football')
+    offense.plot(x='x', y='y', kind='scatter', ax=ax, color='orangered', s=10, label=ht_name)
+    defense.plot(x='x', y='y', kind='scatter', ax=ax, color='blue', s=10, label=at_name)
+    football.plot(x='x', y='y', kind='scatter', ax=ax, color='brown', s=15, label='football')
 
     if plot_blockers:
         blockers_df = get_blocking_players(offense)
@@ -263,25 +275,22 @@ def plot_blocking_formation(ax, blocker_df, line_color='red'):
         blocker_df: DataFrame with only the blocking players
         line_color: Color of the line.
     """
-    blocker_df = blocker_df.sort_values(by=['y'], ascending=[True])
+    blocker_df = blocker_df.sort_values(by=['x'], ascending=[True])
 
     for i in range(len(blocker_df) - 1):
         blocker = blocker_df.iloc[i]
         next_blocker = blocker_df.iloc[i + 1]
 
         if next_blocker is not None:
-            ax.plot([blocker['y'], next_blocker['y']], [blocker['x'], next_blocker['x']], color=line_color)
+            ax.plot([blocker['x'], next_blocker['x']], [blocker['y'], next_blocker['y']], color=line_color)
 
     return ax
 
 
 gameId, playId, week = 2022090800, 343, 1
 
-# create_football_field(boxed_view=(0,0,80,NFL_FIELD_HEIGHT), line_of_scrimmage=10, yards_to_go=10)
+# create_football_field(boxed_view=(0,0,NFL_FIELD_WIDTH,NFL_FIELD_HEIGHT), line_of_scrimmage=10, yards_to_go=10)
 # plt.show()
 
-# plot_play_events(playId, gameId, week, plot_blockers=True)
+plot_play_events(playId, gameId, week, plot_blockers=True)
 # plot_play_tracked_movements(playId, gameId, week)
-
-# anim = animate_player_movement(gameId=gameId, playId=playId, weekNumber=week, plot_blockers=True)
-# save_animation(anim, 'animateOffense.mp4')

@@ -44,7 +44,7 @@ def create_plot_statements_at_frameId(ax, frameId, team_df, team_color, plot_blo
         # Use a custom marker to display the player's orientation
         # TODO: Create/import svg file for the player marker. Insipiration: https://twitter.com/SethWalder
         custom_player_marker = MarkerStyle(r'$D$')
-        custom_player_marker._transform.rotate_deg(player_orientation_degree+180)
+        custom_player_marker._transform.rotate_deg(player_orientation_degree-90)  # Marker has right facing standar orientation
 
         patch.append(ax.plot(player['x'], player['y'], "ro", marker=custom_player_marker, c=team_color, ms=14, label='PlayerCircle'))
 

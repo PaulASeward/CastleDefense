@@ -34,6 +34,9 @@ def rotate_field_orientation(df):
     df['x'] = 53.3 - y
     df['y'] = x
 
+    df['dir'] = (df['dir'] - 90) % 360
+    df['o'] = (df['o'] - 90) % 360
+
     return df
 
 
@@ -221,9 +224,11 @@ def calculate_dx_dy(speed, angle):
     :param speed:
     :return:
     """
-    angle -= 90  # Flip the angle to account for the direction of the play
-    angle = angle % 360  # Ensure angle is within [0, 360)
-    angle = np.radians(angle % 360)  # Ensure angle is within [0, 360) and convert to radians
+    # angle -= 90  # Flip the angle to account for the direction of the play
+    # angle = angle % 360  # Ensure angle is within [0, 360)
+    # angle = np.radians(angle % 360)  # Ensure angle is within [0, 360) and convert to radians
+
+    angle = np.radians(angle)  # Convert to radians
 
     dx = np.sin(angle) * speed  # Uses simple trigonometric identities
     dy = np.cos(angle) * speed

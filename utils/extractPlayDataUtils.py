@@ -31,7 +31,7 @@ def flip_play_direction(df):
     Returns: The flipped play dataframe with x and y coordinates flipped
     """
     x, y = df['x'], df['y']
-    df['x'] = y
+    df['x'] = 53.3 - y
     df['y'] = x
 
     return df
@@ -221,6 +221,8 @@ def calculate_dx_dy(speed, angle):
     :param speed:
     :return:
     """
+    angle -= 180  # Flip the angle to account for the direction of the play
+    angle = angle % 360  # Ensure angle is within [0, 360)
     angle = np.radians(angle % 360)  # Ensure angle is within [0, 360) and convert to radians
 
     dx = np.sin(angle) * speed  # Uses simple trigonometric identities
@@ -231,6 +233,15 @@ def calculate_dx_dy(speed, angle):
 
     if 180 < angle <= 360:
         dx = -dx
+
+    # dy = np.sin(angle) * speed  # Switched roles of dx and dy
+    # dx = np.cos(angle) * speed  # Switched roles of dx and dy
+    #
+    # if 0 <= angle <= 180:
+    #     dy = -dy
+    #
+    # if 90 <= angle <= 270:
+    #     dx = -dx
 
     return dx, dy
 

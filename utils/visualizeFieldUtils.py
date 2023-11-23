@@ -292,5 +292,5 @@ gameId, playId, week = 2022090800, 343, 1
 # create_football_field(boxed_view=(0,0,NFL_FIELD_WIDTH,NFL_FIELD_HEIGHT), line_of_scrimmage=10, yards_to_go=10)
 # plt.show()
 
-plot_play_events(playId, gameId, week, plot_blockers=True)
+# plot_play_events(playId, gameId, week, plot_blockers=True)
 # plot_play_tracked_movements(playId, gameId, week)

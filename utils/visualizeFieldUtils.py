@@ -148,11 +148,11 @@ def create_football_field(boxed_view=None,
     x_min = min(x_max - 10.0, max(0, boxed_view[0]))
     y_min = min(y_max - 10.0, max(0, boxed_view[1]))
 
-    # field_height = y_max - y_min
-    # field_width = x_max - x_min
+    field_height = y_max - y_min
+    field_width = x_max - x_min
 
-    field_height = NFL_FIELD_HEIGHT  # Default to full field view since we are using sliding viewing window
-    field_width = NFL_FIELD_WIDTH
+    # field_height = NFL_FIELD_HEIGHT  # Default to full field view since we are using sliding viewing window
+    # field_width = NFL_FIELD_WIDTH
 
     figsize = (field_width / 10, (field_height + 10) / 10)  # Allow larger vertical spacing for titles in figure
     fig, ax = plt.subplots(1, figsize=figsize)
@@ -292,5 +292,5 @@ gameId, playId, week = 2022090800, 343, 1
 # create_football_field(boxed_view=(0,0,NFL_FIELD_WIDTH,NFL_FIELD_HEIGHT), line_of_scrimmage=10, yards_to_go=10)
 # plt.show()
 
-plot_play_events(playId, gameId, week, plot_blockers=True)
+# plot_play_events(playId, gameId, week, zoomed_view=False, plot_blockers=True)
 # plot_play_tracked_movements(playId, gameId, week)

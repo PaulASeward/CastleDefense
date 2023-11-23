@@ -44,7 +44,7 @@ def create_plot_statements_at_frameId(ax, frameId, team_df, team_color, plot_blo
         # Use a custom marker to display the player's orientation
         # TODO: Create/import svg file for the player marker. Insipiration: https://twitter.com/SethWalder
         custom_player_marker = MarkerStyle(r'$D$')
-        custom_player_marker._transform.rotate_deg(player_orientation_degree+90)
+        custom_player_marker._transform.rotate_deg(player_orientation_degree+180)
 
         patch.append(ax.plot(player['x'], player['y'], "ro", marker=custom_player_marker, c=team_color, ms=14, label='PlayerCircle'))
 
@@ -219,12 +219,12 @@ def animate_func_play(playId, gameId, weekNumber, zoomed_view=False, plot_blocke
     return anim
 
 
-gameId, playId, week = 2022101609, 2504, 6  # Keneth Walker 21 Yard run
+# gameId, playId, week = 2022101609, 2504, 6  # Keneth Walker 21 Yard run
 # gameId, playId, week = 2022100908,3537, 5  # 9 Yard catch by P.Hesse
-# gameId, playId, week = 2022090800, 343, 1  # 2 Yard run
+gameId, playId, week = 2022090800, 343, 1  # 2 Yard run
 
 
-# animate_func_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=False, center_on_football=True,
-# #                   animation_path='animateFuncOffense.mp4')
+animate_func_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=False, center_on_football=True,
+                  animation_path='animateFuncOffense.mp4')
 # animate_func_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=False, center_on_football=True,
 #                   zoom_effect_on_events=True, display_position=True, animation_path='animateFuncOffense.mp4')

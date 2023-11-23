@@ -23,7 +23,7 @@ def load_play(playId, gameId, week=1):
     return offense, defense, football
 
 
-def flip_play_direction(df):
+def rotate_field_orientation(df):
     """
     Flips the play direction of a play
     Args:
@@ -113,9 +113,9 @@ def load_teams_from_play(play_df, play, gameId, vertical_field=True):
     def_df = play_df[play_df['club'] == defense_team]
 
     if vertical_field:
-        off_df = flip_play_direction(off_df)
-        def_df = flip_play_direction(def_df)
-        ft_df = flip_play_direction(ft_df)
+        off_df = rotate_field_orientation(off_df)
+        def_df = rotate_field_orientation(def_df)
+        ft_df = rotate_field_orientation(ft_df)
 
     # Sort teams by timesteps:
     ft_df = ft_df.sort_values(by='frameId', ascending=True)
@@ -221,7 +221,7 @@ def calculate_dx_dy(speed, angle):
     :param speed:
     :return:
     """
-    angle -= 180  # Flip the angle to account for the direction of the play
+    angle -= 90  # Flip the angle to account for the direction of the play
     angle = angle % 360  # Ensure angle is within [0, 360)
     angle = np.radians(angle % 360)  # Ensure angle is within [0, 360) and convert to radians
 

@@ -239,14 +239,8 @@ def calculate_dx_dy(speed, angle):
     if 180 < angle <= 360:
         dx = -dx
 
-    # dy = np.sin(angle) * speed  # Switched roles of dx and dy
-    # dx = np.cos(angle) * speed  # Switched roles of dx and dy
-    #
-    # if 0 <= angle <= 180:
-    #     dy = -dy
-    #
-    # if 90 <= angle <= 270:
-    #     dx = -dx
+    dx *= 0.5
+    dy *= 0.5  # Scale down the velocity vector to make it more visible
 
     return dx, dy
 

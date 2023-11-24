@@ -1,5 +1,6 @@
 from CastleDefense.utils.extractPlayDataUtils import *
 from CastleDefense.utils.visualizeFieldUtils import *
+from CastleDefense.utils.customMarker import CustomMarker
 import matplotlib.pyplot as plt
 from matplotlib.markers import MarkerStyle
 from matplotlib import animation
@@ -43,8 +44,12 @@ def create_plot_statements_at_frameId(ax, frameId, team_df, team_color, plot_blo
 
         # Use a custom marker to display the player's orientation
         # TODO: Create/import svg file for the player marker. Insipiration: https://twitter.com/SethWalder
+        player_id = player['playerDisplayIdentifier']
+
+        # custom_player_marker = CustomMarker(text=player_id, color='red')
         custom_player_marker = MarkerStyle(r'$D$')
-        custom_player_marker._transform.rotate_deg(player_orientation_degree-90)  # Marker has right facing standar orientation
+        custom_player_marker = custom_player_marker.rotated(deg=player_orientation_degree-90)
+        # custom_player_marker._transform.rotate_deg(player_orientation_degree-90)  # Marker has right facing standar orientation
 
         patch.append(ax.plot(player['x'], player['y'], "ro", marker=custom_player_marker, c=team_color, ms=14, label='PlayerCircle'))
 
@@ -225,5 +230,5 @@ gameId, playId, week = 2022090800, 343, 1  # 2 Yard run
 
 # animate_func_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=False, center_on_football=False,
 #                   animation_path='animateFuncOffenseWithoutZoom.mp4')
-# animate_func_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=False, center_on_football=True,
-#                   zoom_effect_on_events=True, display_position=False, animation_path='animateFuncOffense.mp4')
+animate_func_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=False, center_on_football=True,
+                  zoom_effect_on_events=True, display_position=False, animation_path='animateFuncOffense.mp4')

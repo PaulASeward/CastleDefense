@@ -1,6 +1,5 @@
 from CastleDefense.utils.extractPlayDataUtils import *
 from CastleDefense.utils.visualizeFieldUtils import *
-from CastleDefense.utils.customMarker import CustomMarker
 import matplotlib.pyplot as plt
 from matplotlib.markers import MarkerStyle
 from matplotlib import animation
@@ -14,7 +13,7 @@ WINDOW_DISPLAY_SIZE = 6
 ###################
 # Animating PLayers Movement: https://www.kaggle.com/code/ar2017/nfl-big-data-bowl-2021-animating-players-movement
 ###################
-def create_plot_statements_at_frameId(ax, frameId, team_df, team_color, plot_blockers=False):
+def create_plot_statements_at_frameId(ax, frameId, team_df, team_color, text_color, plot_blockers=False):
     """
     Generate the plot statements for each player's location, velocity vector, jersey number, orientation for a given
     team at a specific integer timestep.
@@ -38,7 +37,7 @@ def create_plot_statements_at_frameId(ax, frameId, team_df, team_color, plot_blo
 
     for _, player in player_data.iterrows():
         # Use Text to display the player's jersey number or position as identifier
-        patch.append(ax.text(player['x'], player['y'], player['playerDisplayIdentifier'], va='center', ha='center', color='white', fontsize=10, label='playerDisplayIdentifier'))
+        patch.append(ax.text(player['x'], player['y'], player['playerDisplayIdentifier'], va='center', ha='center', color=text_color, fontsize=10, label='playerDisplayIdentifier'))
 
         player_orientation_degree = player['o'] if play_direction == 'left' else player['o'] + 180
 
@@ -46,12 +45,10 @@ def create_plot_statements_at_frameId(ax, frameId, team_df, team_color, plot_blo
         # TODO: Create/import svg file for the player marker. Insipiration: https://twitter.com/SethWalder
         player_id = player['playerDisplayIdentifier']
 
-        # custom_player_marker = CustomMarker(text=player_id, color='red')
-        custom_player_marker = MarkerStyle(r'$D$')
-        custom_player_marker = custom_player_marker.rotated(deg=player_orientation_degree-90)
-        # custom_player_marker._transform.rotate_deg(player_orientation_degree-90)  # Marker has right facing standar orientation
+        custom_player_marker = MarkerStyle('p')
+        custom_player_marker = custom_player_marker.rotated(deg=player_orientation_degree-90) # Marker has right facing standar orientation
 
-        patch.append(ax.plot(player['x'], player['y'], "ro", marker=custom_player_marker, c=team_color, ms=14, label='PlayerCircle'))
+        patch.append(ax.plot(player['x'], player['y'], marker=custom_player_marker, c=team_color, ms=17, markeredgewidth=1, markeredgecolor=text_color,  label='PlayerCircle'))
 
         # Calculate and plot players' velocity vectors
         dx, dy = calculate_dx_dy(player['s'], player['dir'])
@@ -144,10 +141,10 @@ def animate_frameId(ax, frameId, offense, defense, football, event_frameIds=None
             center_view_on_football(ax, football_data)  # Center the view on the football
 
     # Plot home players
-    patch.extend(create_plot_statements_at_frameId(ax, frameId, offense, 'orangered', plot_blockers=plot_blockers))
+    patch.extend(create_plot_statements_at_frameId(ax, frameId, offense, team_color='orangered', text_color='white', plot_blockers=plot_blockers))
 
     # Plot away players
-    patch.extend(create_plot_statements_at_frameId(ax, frameId, defense, 'blue'))
+    patch.extend(create_plot_statements_at_frameId(ax, frameId, defense, team_color='white', text_color='blue'))
 
     # Plot football
     patch.extend(ax.plot(football_data['x'], football_data['y'], 'D', c='brown', ms=10, data=football_data['club'],

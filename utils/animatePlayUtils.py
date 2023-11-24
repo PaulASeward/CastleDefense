@@ -46,7 +46,7 @@ def create_plot_statements_at_frameId(ax, frameId, team_df, team_color, text_col
         player_id = player['playerDisplayIdentifier']
 
         custom_player_marker = MarkerStyle('p')
-        custom_player_marker = custom_player_marker.rotated(deg=player_orientation_degree-90) # Marker has right facing standar orientation
+        custom_player_marker = custom_player_marker.rotated(deg=player_orientation_degree-90) # Use shield-like pentagon orientation
 
         patch.append(ax.plot(player['x'], player['y'], marker=custom_player_marker, c=team_color, ms=17, markeredgewidth=1, markeredgecolor=text_color,  label='PlayerCircle'))
 
@@ -228,4 +228,4 @@ gameId, playId, week = 2022090800, 343, 1  # 2 Yard run
 # animate_func_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=False, center_on_football=False,
 #                   animation_path='animateFuncOffenseWithoutZoom.mp4')
 animate_func_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=False, center_on_football=True,
-                  zoom_effect_on_events=True, display_position=False, animation_path='animateFuncOffense.mp4')
+                  zoom_effect_on_events=True, display_position=True, animation_path='animateFuncOffense.mp4')

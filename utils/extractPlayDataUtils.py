@@ -217,12 +217,13 @@ def get_blocking_players(offense_df):
     return blocking_player_df
 
 
-def calculate_dx_dy(speed, angle):
+def calculate_dx_dy(speed, angle, scale_factor=0.5):
     """
     Calculates the seperate x and y vectors for the speed from the player's direction
-    :param angle:
-    :param speed:
-    :return:
+    Args:
+        angle: The angle of the player's direction. 0 is facing upfield, 90 is facing right, 180 is facing downfield, 270 is facing left. (for offense)
+        speed: Magnitude of the player's speed
+        scale_factor: The amount to scale down the velocity vector to make it more visible
     """
     # angle -= 90  # Flip the angle to account for the direction of the play
     # angle = angle % 360  # Ensure angle is within [0, 360)
@@ -239,8 +240,8 @@ def calculate_dx_dy(speed, angle):
     if 180 < angle <= 360:
         dx = -dx
 
-    dx *= 0.5
-    dy *= 0.5  # Scale down the velocity vector to make it more visible
+    dx *= scale_factor
+    dy *= scale_factor  # Scale down the velocity vector to make it more visible
 
     return dx, dy
 

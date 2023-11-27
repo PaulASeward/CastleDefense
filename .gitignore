@@ -2,4 +2,5 @@
 /data_analysis/processed_data/
 /output/
 /jupyter_notebooks/sample_output/
+/jupyter_notebooks/.ipynb_checkpoints/
 /utils/sample_output/

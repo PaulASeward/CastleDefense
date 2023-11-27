@@ -1,4 +1,4 @@
-# Joining the tracking data with when the tackle is made - the variable we are predicting a probability for
+# Joining the tracking data with the tackler/assist of a play - the variable we are predicting a probability for
 
 import pandas as pd
 import os
@@ -7,6 +7,7 @@ tracking_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..
 processed_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data_analysis/processed_data'))
 tackles_data_path = os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'overview_data')), 'tackles.csv')
 combined_tracking_data_path = os.path.join(processed_data_path, 'combined_tracking_data.csv')
+plays_data_path = os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'overview_data')), 'plays.csv')
 
 
 def add_tackler_to_tracking_data():
@@ -34,7 +35,6 @@ def add_tackler_to_tracking_data():
         print(len(tracking_week_df))
 
 
-
 def combine_tracking_weeks():
     """
     Combines all the tracking data into one csv file
@@ -52,6 +52,26 @@ def combine_tracking_weeks():
 
     combined_df.to_csv(combined_tracking_data_path, index=False)
 
+
+def get_combined_tracking_data():
+    """
+    Loads the combined tracking data
+    """
+    return pd.read_csv(combined_tracking_data_path)
+
+
+def get_tackles_data():
+    """
+    Loads the tackles data
+    """
+    return pd.read_csv(tackles_data_path)
+
+
+def get_plays_data():
+    """
+    Loads the plays data
+    """
+    return pd.read_csv(plays_data_path)
 
 # add_tackler_to_tracking_data()
 # combine_tracking_weeks()

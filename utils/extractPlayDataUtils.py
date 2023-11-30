@@ -126,9 +126,9 @@ def load_teams_from_play(play_df, play, gameId, vertical_field=True):
     offense_team = play['possessionTeam'].iloc[0]
     defense_team = play['defensiveTeam'].iloc[0]
 
-    # if play_df['playDirection'].iloc[0] == 'left':
-    #     # Flip the play direction to account for the direction of the play
-    #     play_df = flip_play_direction(play_df)
+    # Flip the play direction to account for the direction of the play
+    if play_df['playDirection'].iloc[0] == 'left':
+        play_df = flip_play_direction(play_df)
 
     ft_df = play_df[play_df['club'] == 'football']
     off_df = play_df[play_df['club'] == offense_team]
@@ -143,8 +143,6 @@ def load_teams_from_play(play_df, play, gameId, vertical_field=True):
     ft_df = ft_df.sort_values(by='frameId', ascending=True)
     off_df = off_df.sort_values(by='frameId', ascending=True)
     def_df = def_df.sort_values(by='frameId', ascending=True)
-
-    #  TODO: Add Helper method to use here so all plays are facing the same direction (Left to Right)
 
     return off_df, def_df, ft_df
 

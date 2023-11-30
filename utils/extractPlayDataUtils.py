@@ -23,23 +23,29 @@ def load_play(playId, gameId, week=1):
     return offense, defense, football
 
 
-def flip_play_direction(df):
+def standardize_direction(df, vertical_field=True):
     """
     Flips the play direction of a play
     Args:
         df: The play dataframe
     Returns: The flipped play dataframe
     """
-    df['x'] = 120 - df['x']
-    df['y'] = 53.3 - df['y']
+    # Rows with play_direction as 'left'
+    left_direction = df['play_direction'] == 'left'
 
-    df['dir'] = (df['dir'] + 180) % 360
-    df['o'] = (df['o'] + 180) % 360
+    # Apply transformations only for rows where play_direction is 'left'
+    df.loc[left_direction, 'x'] = 120 - df.loc[left_direction, 'x']
+    df.loc[left_direction, 'y'] = 53.3 - df.loc[left_direction, 'y']
+    df.loc[left_direction, 'dir'] = (df.loc[left_direction, 'dir'] + 180) % 360
+    df.loc[left_direction, 'o'] = (df.loc[left_direction, 'o'] + 180) % 360
+
+    if vertical_field:
+        df = _rotate_field_orientation(df)
 
     return df
 
 
-def rotate_field_orientation(df):
+def _rotate_field_orientation(df):
     """
     Flips the play direction of a play
     Args:
@@ -53,6 +59,20 @@ def rotate_field_orientation(df):
     df['dir'] = (df['dir'] - 90) % 360
     df['o'] = (df['o'] - 90) % 360
 
+    return df
+
+
+def replace_speed_scalars_with_vectors(df):
+    """
+    Replaces the speed scalar with a vector
+    Args:
+        df: Tracking data with speed scalar
+
+    Returns: Tracking data with speed vector
+
+    """
+    df['s_x'] = df['s'] * np.cos(np.radians(df['dir']))
+    df['s_y'] = df['s'] * np.sin(np.radians(df['dir']))
     return df
 
 
@@ -121,24 +141,18 @@ def load_teams_from_play(play_df, play, gameId, vertical_field=True):
     Note: Assumes non-null team names and 'football' label in the 'club' column.
     """
     game = load_game(gameId)
-
     home_team = game['homeTeamAbbr'].iloc[0]
     away_team = game['visitorTeamAbbr'].iloc[0]
+
     offense_team = play['possessionTeam'].iloc[0]
     defense_team = play['defensiveTeam'].iloc[0]
 
-    # Flip the play direction to account for the direction of the play
-    if play_df['playDirection'].iloc[0] == 'left':
-        play_df = flip_play_direction(play_df)
+    # Standardize the play direction to account for the direction of the play and field orientation.
+    play_df = standardize_direction(play_df, vertical_field)
 
     ft_df = play_df[play_df['club'] == 'football']
     off_df = play_df[play_df['club'] == offense_team]
     def_df = play_df[play_df['club'] == defense_team]
-
-    if vertical_field:
-        off_df = rotate_field_orientation(off_df)
-        def_df = rotate_field_orientation(def_df)
-        ft_df = rotate_field_orientation(ft_df)
 
     # Sort teams by timesteps:
     ft_df = ft_df.sort_values(by='frameId', ascending=True)
@@ -242,10 +256,6 @@ def calculate_dx_dy(speed, angle):
     :param speed:
     :return:
     """
-    # angle -= 90  # Flip the angle to account for the direction of the play
-    # angle = angle % 360  # Ensure angle is within [0, 360)
-    # angle = np.radians(angle % 360)  # Ensure angle is within [0, 360) and convert to radians
-
     angle = np.radians(angle)  # Convert to radians
 
     dx = np.sin(angle) * speed  # Uses simple trigonometric identities
@@ -256,15 +266,6 @@ def calculate_dx_dy(speed, angle):
 
     if 180 < angle <= 360:
         dx = -dx
-
-    # dy = np.sin(angle) * speed  # Switched roles of dx and dy
-    # dx = np.cos(angle) * speed  # Switched roles of dx and dy
-    #
-    # if 0 <= angle <= 180:
-    #     dy = -dy
-    #
-    # if 90 <= angle <= 270:
-    #     dx = -dx
 
     return dx, dy
 

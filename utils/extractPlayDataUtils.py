@@ -71,8 +71,8 @@ def replace_speed_scalars_with_vectors(df):
     Returns: Tracking data with speed vector
 
     """
-    df['s_x'] = df['s'] * np.cos(np.radians(df['dir']))
-    df['s_y'] = df['s'] * np.sin(np.radians(df['dir']))
+    df['s_x'] = df['s'] * np.sin(np.radians(df['dir']))
+    df['s_y'] = df['s'] * np.cos(np.radians(df['dir']))
     return df
 
 
@@ -149,6 +149,9 @@ def load_teams_from_play(play_df, play, gameId, vertical_field=True):
 
     # Standardize the play direction to account for the direction of the play and field orientation.
     play_df = standardize_direction(play_df, vertical_field)
+
+    # Replace speed scalar with vector
+    play_df = replace_speed_scalars_with_vectors(play_df)
 
     ft_df = play_df[play_df['club'] == 'football']
     off_df = play_df[play_df['club'] == offense_team]
@@ -240,27 +243,6 @@ def get_blocking_players(offense_df):
     blocking_players_df = players_df[players_df['position'].isin(['TE', 'G', 'C', 'T'])]
     blocking_player_df = offense_df[offense_df['nflId'].isin(blocking_players_df['nflId'])]
     return blocking_player_df
-
-
-def calculate_dx_dy(speed, angle):
-    """
-    Calculates the seperate x and y vectors for the speed from the player's direction
-    :param angle:
-    :param speed:
-    :return:
-    """
-    angle = np.radians(angle)  # Convert to radians
-
-    dx = np.sin(angle) * speed  # Uses simple trigonometric identities
-    dy = np.cos(angle) * speed
-
-    if 90 < angle <= 270:
-        dy = -dy
-
-    if 180 < angle <= 360:
-        dx = -dx
-
-    return dx, dy
 
 
 def assign_player_display_identifier(offense, defense, display_position):

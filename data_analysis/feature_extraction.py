@@ -20,8 +20,8 @@ def replace_speed_scalars_with_vectors(tracking_data):
     """
     Replaces the speed scalar with a vector
     """
-    tracking_data['s_x'] = -tracking_data['s'] * tracking_data['dir'].apply(lambda x: np.cos(np.radians(x+90)))
-    tracking_data['s_y'] = tracking_data['s'] * tracking_data['dir'].apply(lambda x: np.sin(np.radians(x+90)))
+    tracking_data['s_x'] = tracking_data['s'] * tracking_data['dir'].apply(lambda x: np.sin(np.radians(x)))
+    tracking_data['s_y'] = tracking_data['s'] * tracking_data['dir'].apply(lambda x: np.cos(np.radians(x)))
     tracking_data = tracking_data.drop(['s', 'dir'], axis=1)
     return tracking_data
 

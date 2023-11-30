@@ -49,7 +49,7 @@ def create_plot_statements_at_frameId(ax, frameId, team_df, team_color, plot_blo
         patch.append(ax.plot(player['x'], player['y'], "ro", marker=custom_player_marker, c=team_color, ms=14, label='PlayerCircle'))
 
         # Calculate and plot players' velocity vectors
-        dx, dy = calculate_dx_dy(player['s'], player['dir'])
+        dx, dy = player['s_x'], player['s_y']
         dx *= 0.5
         dy *= 0.5  # Scale down the velocity vector to make it more visible
         patch.append(ax.arrow(player['x'], player['y'], dx, dy, color='grey', width=0.15, shape='full', alpha=0.5, label='VelocityVector'))

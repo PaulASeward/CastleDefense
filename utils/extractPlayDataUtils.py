@@ -31,7 +31,7 @@ def standardize_direction(df, vertical_field=True):
     Returns: The flipped play dataframe
     """
     # Rows with play_direction as 'left'
-    left_direction = df['play_direction'] == 'left'
+    left_direction = df['playDirection'] == 'left'
 
     # Apply transformations only for rows where play_direction is 'left'
     df.loc[left_direction, 'x'] = 120 - df.loc[left_direction, 'x']

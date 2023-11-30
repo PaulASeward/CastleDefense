@@ -197,20 +197,13 @@ def get_los_details(play, play_df):
     Returns: Line of Scrimmage and Yards To Go. Both are scalar values that have been flipped to the playDirection
 
     """
-    los = play['yardlineNumber'].iloc[0]
     yards_to_go = play['yardsToGo'].iloc[0]
+    abs_los = play['absoluteYardlineNumber'].iloc[0] # Absolute line of scrimmage from endzone. (Substract 10 to get Yard Line Number)
 
-    absoluteYardlineNumber = play['absoluteYardlineNumber'].item() - 10
-
-    if (absoluteYardlineNumber > 50):
-        los = 100 - los
-    if (absoluteYardlineNumber <= 50):
-        los = los
-
-    if play_df['playDirection'].iloc[0] == 'left':
-        yards_to_go = -yards_to_go
+    if play_df['playDirection'].iloc[0] == 'right':
+        los = abs_los-10
     else:
-        yards_to_go = yards_to_go
+        los = 100 - (abs_los-10)
 
     return los, yards_to_go
 
@@ -395,8 +388,12 @@ def adjust_frameIds_for_zoom_effect(offense, defense, football, event_frameIds):
     return offense, defense, football, event_frameIds
 
 
-# gameId, playId, week = 2022090800, 343, 1
+# # gameId, playId, week = 2022090800, 343, 1
+#
+# #
+# play = get_play_by_id(gameId, playId)
 # play_df = load_play_data(gameId,playId,week)
+# los, yards_to_go = get_los_details(play, play_df)
 # game = load_game(gameId)
 # plays_df = load_all_plays_by_game(gameId, week)
 # x=1

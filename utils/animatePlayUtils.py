@@ -221,10 +221,10 @@ def animate_func_play(playId, gameId, weekNumber, zoomed_view=False, plot_blocke
 
 # gameId, playId, week = 2022101609, 2504, 6  # Keneth Walker 21 Yard run
 # gameId, playId, week = 2022100908,3537, 5  # 9 Yard catch by P.Hesse
-gameId, playId, week = 2022090800, 343, 1  # 2 Yard run
+# gameId, playId, week = 2022090800, 343, 1  # 2 Yard run
+gameId, playId, week = 2022090800, 191, 1  # Play Direction is Left
 
-
-# animate_func_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=False, center_on_football=False,
-#                   animation_path='sample_output/animateFuncOffenseWithoutZoom.mp4')
+animate_func_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=False, center_on_football=False,
+                  animation_path='sample_output/animateFuncOffenseWithoutZoom.mp4')
 # animate_func_play(playId=playId, gameId=gameId, weekNumber=week, plot_blockers=False, center_on_football=True,
 #                   zoom_effect_on_events=True, display_position=False, animation_path='sample_output/animateFuncOffense.mp4')

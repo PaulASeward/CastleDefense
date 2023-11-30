@@ -24,16 +24,14 @@ def combine_tracking_weeks():
             combined_df = tracking_week_df
         else:
             combined_df = pd.concat([combined_df, tracking_week_df])
+    return combined_df
 
-    combined_df.to_csv(combined_tracking_data_path, index=False)
 
-
-def add_tackler_to_tracking_data():
+def add_tackler_to_tracking_data(tracking_data):
     """
     Adds a column to the tracking data that indicates whether the player made a tackle/assist or not
     We decided to add assisted tackles since this measures the defensive player's ability to impact the ball carrier
     """
-    tracking_data = get_combined_tracking_data()
     tackles_df = pd.read_csv(tackles_data_path)
 
     merged_df = pd.merge(tracking_data, tackles_df, on=['gameId', 'playId'], how='left')
@@ -42,19 +40,18 @@ def add_tackler_to_tracking_data():
     tracking_data['made_tackle'] = merged_df.apply(
         lambda row: 1 if row['nflId_x'] == row['nflId_y'] and (row['tackle'] == 1 or row['assist'] == 1) else 0,
         axis=1)
+    return tracking_data
 
-    tracking_data.to_csv(combined_tracking_data_path, index=False)
 
-
-def add_ball_carrier_to_tracking_data():
-    tracking_data = get_combined_tracking_data()
+def add_ball_carrier_to_tracking_data(tracking_data):
     plays_df = get_plays_data()
 
     merged_df = pd.merge(tracking_data, plays_df, on=['gameId', 'playId'], how='left')
+    tracking_data['ball_carrier'] = merged_df.apply(
+        lambda row: 1 if row['nflId'] == row['ballCarrierId'] else 0, axis=1)
 
-    tracking_data['ball_carrier'] = merged_df['ballCarrierId']
-
-    tracking_data.to_csv(combined_tracking_data_path, index=False)
+    # tracking_data['ball_carrier'] = merged_df['ballCarrierId']
+    return tracking_data
 
 
 def get_combined_tracking_data():
@@ -77,7 +74,13 @@ def get_plays_data():
     """
     return pd.read_csv(plays_data_path)
 
-
-# combine_tracking_weeks()
-# add_tackler_to_tracking_data()
-# add_ball_carrier_to_tracking_data()
+#
+# combined_df = combine_tracking_weeks()
+# combined_df.to_csv(combined_tracking_data_path, index=False)
+#
+# tracking_data = get_combined_tracking_data()
+# tracking_data = add_tackler_to_tracking_data(tracking_data)
+#
+#
+# tracking_data = add_ball_carrier_to_tracking_data(tracking_data)
+# tracking_data.to_csv(combined_tracking_data_path, index=False)

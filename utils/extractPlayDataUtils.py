@@ -23,6 +23,21 @@ def load_play(playId, gameId, week=1):
     return offense, defense, football
 
 
+def flip_play_direction(df):
+    """
+    Flips the play direction of a play
+    Args:
+        df: The play dataframe
+    Returns: The flipped play dataframe
+    """
+    df['x'] = 120 - df['x']
+    df['y'] = 53.3 - df['y']
+
+    df['dir'] = (df['dir'] + 180) % 360
+    df['o'] = (df['o'] + 180) % 360
+
+    return df
+
 def rotate_field_orientation(df):
     """
     Flips the play direction of a play
@@ -110,6 +125,10 @@ def load_teams_from_play(play_df, play, gameId, vertical_field=True):
     away_team = game['visitorTeamAbbr'].iloc[0]
     offense_team = play['possessionTeam'].iloc[0]
     defense_team = play['defensiveTeam'].iloc[0]
+
+    # if play_df['playDirection'].iloc[0] == 'left':
+    #     # Flip the play direction to account for the direction of the play
+    #     play_df = flip_play_direction(play_df)
 
     ft_df = play_df[play_df['club'] == 'football']
     off_df = play_df[play_df['club'] == offense_team]

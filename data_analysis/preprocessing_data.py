@@ -43,7 +43,42 @@ def add_tackler_to_tracking_data(tracking_data):
     return tracking_data
 
 
+def standardize_orientation(tracking_data):
+    """
+    This should be done first before standardizing the direction
+    Standardizes the orientation of the field as vertical instead of horizontal
+    """
+    x, y = tracking_data['x'], tracking_data['y']
+    tracking_data['x'] = 53.3 - y
+    tracking_data['y'] = x
+
+    tracking_data['dir'] = (tracking_data['dir'] - 90) % 360
+    tracking_data['o'] = (tracking_data['o'] - 90) % 360
+
+    return tracking_data
+
+
+def standardize_direction(tracking_data):
+    """
+    Flips the direction of the field so that the offense is always moving Up the field
+    This should be done after standardizing the orientation.
+    """
+    # Rows with play_direction as 'left'
+    left_direction = tracking_data['play_direction'] == 'left'
+
+    # Apply transformations only for rows where play_direction is 'left'
+    tracking_data.loc[left_direction, 'x'] = 120 - tracking_data.loc[left_direction, 'x']
+    tracking_data.loc[left_direction, 'y'] = 53.3 - tracking_data.loc[left_direction, 'y']
+    tracking_data.loc[left_direction, 'dir'] = (tracking_data.loc[left_direction, 'dir'] + 180) % 360
+    tracking_data.loc[left_direction, 'o'] = (tracking_data.loc[left_direction, 'o'] + 180) % 360
+
+    return tracking_data
+
+
 def add_ball_carrier_to_tracking_data(tracking_data):
+    """
+    Adds a column to the tracking data that indicates whether the player is the ball carrier or not
+    """
     plays_df = get_plays_data()
 
     merged_df = pd.merge(tracking_data, plays_df, on=['gameId', 'playId'], how='left')
@@ -74,13 +109,15 @@ def get_plays_data():
     """
     return pd.read_csv(plays_data_path)
 
-#
-# combined_df = combine_tracking_weeks()
-# combined_df.to_csv(combined_tracking_data_path, index=False)
-#
-# tracking_data = get_combined_tracking_data()
-# tracking_data = add_tackler_to_tracking_data(tracking_data)
-#
-#
-# tracking_data = add_ball_carrier_to_tracking_data(tracking_data)
-# tracking_data.to_csv(combined_tracking_data_path, index=False)
+
+combined_df = combine_tracking_weeks()
+combined_df.to_csv(combined_tracking_data_path, index=False)
+
+tracking_data = get_combined_tracking_data()
+tracking_data = add_tackler_to_tracking_data(tracking_data)
+tracking_data = standardize_orientation(tracking_data)
+tracking_data = standardize_direction(tracking_data)
+
+
+tracking_data = add_ball_carrier_to_tracking_data(tracking_data)
+tracking_data.to_csv(combined_tracking_data_path, index=False)

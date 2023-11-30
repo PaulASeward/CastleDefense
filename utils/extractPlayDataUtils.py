@@ -38,6 +38,7 @@ def flip_play_direction(df):
 
     return df
 
+
 def rotate_field_orientation(df):
     """
     Flips the play direction of a play

@@ -43,9 +43,28 @@ def add_tackler_to_tracking_data(tracking_data):
     return tracking_data
 
 
-def standardize_orientation(tracking_data):
+def standardize_direction(tracking_data):
     """
-    This should be done first before standardizing the direction
+    This should be done before standardizing the orientation.
+    Flips the direction of the field so that the offense is always moving Up the field
+    """
+    # Rows with play_direction as 'left'
+    left_direction = tracking_data['playDirection'] == 'left'
+
+    # Apply transformations only for rows where play_direction is 'left'
+    tracking_data.loc[left_direction, 'x'] = 120 - tracking_data.loc[left_direction, 'x']
+    tracking_data.loc[left_direction, 'y'] = 53.3 - tracking_data.loc[left_direction, 'y']
+    tracking_data.loc[left_direction, 'dir'] = (tracking_data.loc[left_direction, 'dir'] + 180) % 360
+    tracking_data.loc[left_direction, 'o'] = (tracking_data.loc[left_direction, 'o'] + 180) % 360
+
+    tracking_data = _standardize_orientation(tracking_data)
+
+    return tracking_data
+
+
+def _standardize_orientation(tracking_data):
+    """
+    This should be only done after standardizing the direction
     Standardizes the orientation of the field as vertical instead of horizontal
     """
     x, y = tracking_data['x'], tracking_data['y']
@@ -54,23 +73,6 @@ def standardize_orientation(tracking_data):
 
     tracking_data['dir'] = (tracking_data['dir'] - 90) % 360
     tracking_data['o'] = (tracking_data['o'] - 90) % 360
-
-    return tracking_data
-
-
-def standardize_direction(tracking_data):
-    """
-    Flips the direction of the field so that the offense is always moving Up the field
-    This should be done after standardizing the orientation.
-    """
-    # Rows with play_direction as 'left'
-    left_direction = tracking_data['play_direction'] == 'left'
-
-    # Apply transformations only for rows where play_direction is 'left'
-    tracking_data.loc[left_direction, 'x'] = 120 - tracking_data.loc[left_direction, 'x']
-    tracking_data.loc[left_direction, 'y'] = 53.3 - tracking_data.loc[left_direction, 'y']
-    tracking_data.loc[left_direction, 'dir'] = (tracking_data.loc[left_direction, 'dir'] + 180) % 360
-    tracking_data.loc[left_direction, 'o'] = (tracking_data.loc[left_direction, 'o'] + 180) % 360
 
     return tracking_data
 
@@ -115,7 +117,6 @@ combined_df.to_csv(combined_tracking_data_path, index=False)
 
 tracking_data = get_combined_tracking_data()
 tracking_data = add_tackler_to_tracking_data(tracking_data)
-tracking_data = standardize_orientation(tracking_data)
 tracking_data = standardize_direction(tracking_data)
 
 

@@ -125,9 +125,9 @@ def get_plays_data():
 # tracking_data = standardize_direction(tracking_data)
 # tracking_data.to_csv(standard_tracking_data_path, index=False)
 #
-tracking_data = pd.read_csv(standard_tracking_data_path)
-tracking_data = add_ball_carrier_to_tracking_data(tracking_data)
-tracking_data.to_csv(ball_carrier_tracking_data_path, index=False)
+# tracking_data = pd.read_csv(standard_tracking_data_path)
+# tracking_data = add_ball_carrier_to_tracking_data(tracking_data)
+# tracking_data.to_csv(ball_carrier_tracking_data_path, index=False)
 
 
 # # Sanity Check on df lengths

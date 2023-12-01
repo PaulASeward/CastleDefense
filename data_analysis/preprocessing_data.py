@@ -7,6 +7,9 @@ tracking_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..
 processed_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data_analysis/processed_data'))
 tackles_data_path = os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'overview_data')), 'tackles.csv')
 combined_tracking_data_path = os.path.join(processed_data_path, 'combined_tracking_data.csv')
+ball_carrier_tracking_data_path = os.path.join(processed_data_path, 'ball_carrier_tracking_data.csv')
+standard_tracking_data_path = os.path.join(processed_data_path, 'standard_tracking_data.csv')
+tackler_added_tracking_data_path = os.path.join(processed_data_path, 'tackler_added_tracking_data.csv')
 plays_data_path = os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'overview_data')), 'plays.csv')
 
 
@@ -84,10 +87,9 @@ def add_ball_carrier_to_tracking_data(tracking_data):
     plays_df = get_plays_data()
 
     merged_df = pd.merge(tracking_data, plays_df, on=['gameId', 'playId'], how='left')
-    tracking_data['ball_carrier'] = merged_df.apply(
-        lambda row: 1 if row['nflId'] == row['ballCarrierId'] else 0, axis=1)
 
-    # tracking_data['ball_carrier'] = merged_df['ballCarrierId']
+    tracking_data['ball_carrier'] = merged_df.apply(lambda row: 1 if row['nflId'] == row['ballCarrierId'] else 0, axis=1)
+
     return tracking_data
 
 
@@ -112,13 +114,29 @@ def get_plays_data():
     return pd.read_csv(plays_data_path)
 
 
-combined_df = combine_tracking_weeks()
-combined_df.to_csv(combined_tracking_data_path, index=False)
-
-tracking_data = get_combined_tracking_data()
-tracking_data = add_tackler_to_tracking_data(tracking_data)
-tracking_data = standardize_direction(tracking_data)
-
-
+# combined_df = combine_tracking_weeks()
+# combined_df.to_csv(combined_tracking_data_path, index=False)
+#
+# tracking_data = get_combined_tracking_data()
+# tracking_data = add_tackler_to_tracking_data(tracking_data)
+# tracking_data.to_csv(tackler_added_tracking_data_path, index=False)
+#
+# tracking_data = pd.read_csv(tackler_added_tracking_data_path)
+# tracking_data = standardize_direction(tracking_data)
+# tracking_data.to_csv(standard_tracking_data_path, index=False)
+#
+tracking_data = pd.read_csv(standard_tracking_data_path)
 tracking_data = add_ball_carrier_to_tracking_data(tracking_data)
-tracking_data.to_csv(combined_tracking_data_path, index=False)
+tracking_data.to_csv(ball_carrier_tracking_data_path, index=False)
+
+
+# # Sanity Check on df lengths
+# combined_df_length = len(get_combined_tracking_data())
+# tackler_added_length = len(pd.read_csv(tackler_added_tracking_data_path))
+# standard_tracking_length = len(pd.read_csv(standard_tracking_data_path))
+# # ball_carrier_length = len(pd.read_csv(ball_carrier_tracking_data_path))
+#
+# print('Combined_DF Length:', combined_df_length)
+# print('Tackler Added Length:', tackler_added_length)
+# print('Standard Tracking Length:', standard_tracking_length)
+# # print('Ball Carrier Length:', ball_carrier_length)

@@ -9,6 +9,13 @@ combined_tracking_data_path = os.path.join(processed_data_path, 'combined_tracki
 engineered_data_path = os.path.join(processed_data_path, 'engineered_data.csv')
 test_engineered_data_path = os.path.join(processed_data_path, 'test_engineered_data.csv')
 
+ball_carrier_tracking_data_path = os.path.join(processed_data_path, 'ball_carrier_tracking_data.csv')
+
+velocity_engineered_data_path = os.path.join(processed_data_path, 'velocity_engineered_data.csv')
+relative_features_tracking_data_path = os.path.join(processed_data_path, 'relative_features_tracking_data.csv')
+extracted_features_path = os.path.join(processed_data_path, 'extracted_features.csv')
+
+
 def get_engineered_data():
     """
     Returns the engineered data
@@ -22,7 +29,7 @@ def replace_speed_scalars_with_vectors(tracking_data):
     """
     tracking_data['s_x'] = tracking_data['s'] * tracking_data['dir'].apply(lambda x: np.sin(np.radians(x)))
     tracking_data['s_y'] = tracking_data['s'] * tracking_data['dir'].apply(lambda x: np.cos(np.radians(x)))
-    tracking_data = tracking_data.drop(['s', 'dir'], axis=1)
+    # tracking_data = tracking_data.drop(['s', 'dir'], axis=1)
     return tracking_data
 
 
@@ -83,17 +90,26 @@ def calculate_relative_features(tracking_data):
 
 
 def remove_redundant_features(tracking_data):
-    redundant_features = ['gameId', 'playId', 'frameId', 'time', 'nflId', 'displayName', 'club', 'jerseyNumber', 'playDirection', 'dis', 'o','event']
+    redundant_features = ['gameId', 'playId', 'frameId', 'time', 'nflId', 'displayName', 'club', 'jerseyNumber', 'playDirection', 's', 'dir', 'dis', 'o','event']
     tracking_data = tracking_data.drop(redundant_features, axis=1)
     return tracking_data
 
 
-# tracking_data = get_combined_tracking_data()
-# tracking_data = replace_speed_scalars_with_vectors(tracking_data)
-# tracking_data.to_csv(engineered_data_path, index=False)
+# ball_carrier_tracking_data = pd.read_csv(ball_carrier_tracking_data_path)
+# # tracking_data = get_combined_tracking_data()
+# # velocity_tracking_data = replace_speed_scalars_with_vectors(tracking_data)
+# # velocity_tracking_data.to_csv(velocity_engineered_data_path, index=False)
+#
+#
+# velocity_tracking_data = pd.read_csv(velocity_engineered_data_path)
+# relative_features_tracking_data = calculate_relative_features(velocity_tracking_data)
+# relative_features_tracking_data.to_csv(relative_features_tracking_data_path, index=False)
+#
+# extracted_features = remove_redundant_features(relative_features_tracking_data)
+# extracted_features.to_csv(extracted_features_path, index=False)
 
-tracking_data = calculate_relative_features(get_engineered_data())
-tracking_data.to_csv(test_engineered_data_path, index=False)
-
-# tracking_data = remove_redundant_features(get_engineered_data())
-# tracking_data.to_csv(engineered_data_path, index=False)
+# Sanity Checks
+# print('Length of ball carrier tracking data: ', len(ball_carrier_tracking_data))
+# print('Length of velocity tracking data: ', len(velocity_tracking_data))
+# print('Length of relative features tracking data: ', len(relative_features_tracking_data))
+# print('Length of extracted features: ', len(extracted_features))

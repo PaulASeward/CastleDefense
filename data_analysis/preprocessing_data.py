@@ -93,6 +93,25 @@ def add_ball_carrier_to_tracking_data(tracking_data):
     return tracking_data
 
 
+def add_offense_label(tracking_data):
+    """
+    Adds a column to the tracking data that indicates whether the player is the ball carrier or not
+    """
+    plays_df = get_plays_data()
+
+    merged_df = pd.merge(tracking_data, plays_df, on=['gameId', 'playId'], how='left')
+
+    tracking_data['is_on_offense'] = merged_df.apply(lambda row: 1 if row['club'] == row['possessionTeam'] else 0, axis=1)
+
+    # # Use a lambda function to determine offense status
+    # tracking_data['is_on_offense'] = tracking_data.apply(
+    #     lambda row: row['club'] == plays_df.loc[(plays_df['gameId'] == row['gameId']) & (plays_df['playId'] == row['playId']), 'possessionTeam'].values[0],
+    #     axis=1
+    # ).astype(int)
+
+    return tracking_data
+
+
 def get_combined_tracking_data():
     """
     Loads the combined tracking data
@@ -112,6 +131,17 @@ def get_plays_data():
     Loads the plays data
     """
     return pd.read_csv(plays_data_path)
+
+
+def process_data(tracking_data):
+    """
+    Processes the tracking data
+    """
+    tracking_data = add_tackler_to_tracking_data(tracking_data)
+    tracking_data = standardize_direction(tracking_data)
+    tracking_data = add_ball_carrier_to_tracking_data(tracking_data)
+    tracking_data = add_offense_label(tracking_data)
+    return tracking_data
 
 
 # combined_df = combine_tracking_weeks()

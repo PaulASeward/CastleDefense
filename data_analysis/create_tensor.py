@@ -12,13 +12,13 @@ def create_tensor_train_x(tracking_data):
     Creates the train_x tensor
     """
     df_play = get_plays_data()
-    df_play.sort_values(by=['PlayId'],inplace=True)
-    tracking_data.sort_values(by=['PlayId'], inplace=True)
+    df_play.sort_values(by=['playId'],inplace=True)
+    tracking_data.sort_values(by=['playId'], inplace=True)
 
     grouped_plays_df = tracking_data.groupby('playId')
     train_x = np.zeros([len(grouped_plays_df.size()), 11, 10, 10])
     i = 0
-    play_ids = df_play.PlayId.values
+    play_ids = df_play.playId.values
     for play_id, play_group in grouped_plays_df:
         if play_id != play_ids[i]:
             print("Error:", play_id, play_ids[i])
@@ -47,7 +47,7 @@ def create_tensor_train_y(tracking_data):
     """
     Creates the train_y tensor. Each frameId for each play will have size 11 x 1 representing the actual tackle made
     """
-    tracking_data.sort_values(by=['PlayId'], inplace=True)
+    tracking_data.sort_values(by=['playId'], inplace=True)
 
     train_y = tracking_data['made_tackle'].copy()
 

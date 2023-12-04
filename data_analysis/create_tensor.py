@@ -12,18 +12,19 @@ def create_tensor_train_x(tracking_data):
     Creates the train_x tensor
     """
     df_play = get_plays_data()
-    df_play.sort_values(by=['playId'],inplace=True)
-    tracking_data.sort_values(by=['playId'], inplace=True)
+    df_play.sort_values(by=['playId', 'gameId'], inplace=True)
+    tracking_data.sort_values(by=['playId', 'gameId'], inplace=True)
 
-    grouped_plays_df = tracking_data.groupby('playId')
+    grouped_plays_df = tracking_data.groupby(['playId', 'gameId'])
     train_x = np.zeros([len(grouped_plays_df.size()), 11, 10, 10])
     i = 0
-    play_ids = df_play.playId.values
-    for play_id, play_group in grouped_plays_df:
-        if play_id != play_ids[i]:
-            print("Error:", play_id, play_ids[i])
+    play_ids = df_play[['playId', 'gameId']].values
 
-        [[rusher_x, rusher_y, rusher_Sx, rusher_Sy]] = play_group.loc[play_group.ball_carrier == 1, ['X_std', 'Y_std', 'Sx', 'Sy']].values
+    for (play_id, game_id), play_group in grouped_plays_df:
+        if (play_id, game_id) != tuple(play_ids[i]):
+            print("Error:", (play_id, game_id), tuple(play_ids[i]))
+
+        # [[rusher_x, rusher_y, rusher_Sx, rusher_Sy]] = play_group.loc[play_group.ball_carrier == 1, ['x', 'y', 's_x', 's_y']].values
 
         offense_ids = play_group[play_group.is_on_offense & ~play_group.ball_carrier].index
         defense_ids = play_group[~play_group.is_on_offense].index

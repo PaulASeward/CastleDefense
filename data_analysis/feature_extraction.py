@@ -14,7 +14,7 @@ ball_carrier_tracking_data_path = os.path.join(processed_data_path, 'ball_carrie
 velocity_engineered_data_path = os.path.join(processed_data_path, 'velocity_engineered_data.csv')
 relative_features_tracking_data_path = os.path.join(processed_data_path, 'relative_features_tracking_data.csv')
 extracted_features_path = os.path.join(processed_data_path, 'extracted_features.csv')
-
+tracking_data_all_features_path = os.path.join(processed_data_path, 'tracking_data_all_features.csv')
 
 def get_engineered_data():
     """
@@ -58,6 +58,7 @@ def calculate_relative_features(tracking_data):
 
 
 def remove_redundant_features(tracking_data):
+    tracking_data = tracking_data[tracking_data['club'] != 'football']
     redundant_features = ['time', 'nflId', 'displayName', 'club', 'jerseyNumber', 'playDirection', 's', 'dir', 'dis', 'o','event']
     tracking_data = tracking_data.drop(redundant_features, axis=1)
     return tracking_data
@@ -100,10 +101,10 @@ def get_extracted_features():
 # offense_label = add_offense_label(relative_features)
 # print('Added offense label')
 # offense_label.to_csv(extracted_features_path, index=False)
-
-# offense_label = pd.read_csv(extracted_features_path)
+#
+# tracking_data_all_features = pd.read_csv(tracking_data_all_features_path)
 # print('Read offense label')
-# extracted_features = remove_redundant_features(offense_label)
+# extracted_features = remove_redundant_features(tracking_data_all_features)
 # print('Removed redundant features')
 # extracted_features.to_csv(extracted_features_path, index=False)
 # print(extracted_features.head(10))

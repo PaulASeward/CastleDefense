@@ -24,12 +24,9 @@ def create_tensor_train_x(tracking_data):
     # D: 5 Vector features - Projections on X,Y axis = size of 10
 
     i = 0  # Play frame index. Used to index train_x
-    play_ids = df_play[['playId', 'gameId']].values
+
 
     for (play_id, game_id, frameId), play_group in grouped_plays_df:
-        if (play_id, game_id) != tuple(play_ids[i]):
-            print("Error:", (frameId, play_id, game_id), tuple(play_ids[i]))
-
         offense_ids = play_group[(play_group['is_on_offense'] == 1) & (play_group['ball_carrier'] == 0)].index
         defense_ids = play_group[play_group['is_on_offense'] == 0].index
 
@@ -67,7 +64,7 @@ def create_tensor_train_y(tracking_data):
     """
     Creates the train_y tensor. Each frameId for each play will have size 11 x 1 representing the actual tackle made
     """
-    tracking_data.sort_values(by=['playId'], inplace=True)
+    tracking_data.sort_values(by=['playId', 'gameId', 'frameId'], inplace=True)
 
     train_y = tracking_data['made_tackle'].copy()
 
@@ -79,3 +76,5 @@ tracking_data = get_extracted_features()
 print('Extracted features loaded')
 create_tensor_train_x(tracking_data)
 print('Train_x tensor created')
+# create_tensor_train_y(tracking_data)
+# print('Train_y tensor created')

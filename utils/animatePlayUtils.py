@@ -221,7 +221,7 @@ def animate_func_play(playId, gameId, weekNumber, zoomed_view=False, plot_blocke
 
 # gameId, playId, week = 2022101609, 2504, 6  # Keneth Walker 21 Yard run
 # gameId, playId, week = 2022100908,3537, 5  # 9 Yard catch by P.Hesse
-gameId, playId, week = 2022090800, 343, 1  # 2 Yard run Play Direction is Right
+# gameId, playId, week = 2022090800, 343, 1  # 2 Yard run Play Direction is Right
 # gameId, playId, week = 2022090800, 191, 1  # Play Direction is Left
 
 # gameId, playId, week = 2022091801, 906, 2

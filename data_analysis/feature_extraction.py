@@ -2,7 +2,9 @@ import os
 import math
 import numpy as np
 import pandas as pd
+from CastleDefense.utils.extractPlayDataUtils import load_all_plays_by_game
 from CastleDefense.data_analysis.preprocessing_data import *
+from CastleDefense.data_analysis.model_predictions import use_model_to_predict_tackler
 
 processed_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data_analysis/processed_data'))
 combined_tracking_data_path = os.path.join(processed_data_path, 'combined_tracking_data.csv')
@@ -75,6 +77,27 @@ def get_extracted_features():
     return pd.read_csv(extracted_features_path)
 
 
+def append_predicted_tackler(tracking_data, y_pred):
+    # Create empty new column for predicted tackler
+    tracking_data['predicted_tackler'] = np.zeros(len(tracking_data))
+
+    grouped_frames_df = tracking_data.groupby(['frameId'])
+    for frame_id, frame_group in grouped_frames_df:
+        defense_ids = frame_group[frame_group['is_on_offense'] == 0].index
+
+        for i, defense_id in enumerate(defense_ids):
+            tracking_data.loc[defense_id, 'predicted_tackler'] = y_pred[frame_id-1][i]
+
+    return tracking_data
+
+
+def extract_predicted_tackler(tracking_data):
+    tracking_data = process_data(tracking_data)
+    tracking_data = extract_features(tracking_data)
+    x_train, y_pred = use_model_to_predict_tackler(tracking_data)
+    tracking_data = append_predicted_tackler(tracking_data, y_pred)
+    return tracking_data
+
 # ball_carrier_tracking_data = pd.read_csv(ball_carrier_tracking_data_path)
 # # tracking_data = get_combined_tracking_data()
 # # velocity_tracking_data = replace_speed_scalars_with_vectors(tracking_data)
@@ -108,3 +131,8 @@ def get_extracted_features():
 # print('Removed redundant features')
 # extracted_features.to_csv(extracted_features_path, index=False)
 # print(extracted_features.head(10))
+
+# gameId, playId, week = 2022101609, 2504, 6
+# play_df = load_all_plays_by_game(gameId, week)
+# # play_df = load_play_data(gameId,playId,week)
+# play_df = extract_predicted_tackler(play_df)

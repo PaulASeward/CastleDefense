@@ -4,6 +4,7 @@ import numpy as np
 import time
 import dateutil
 
+
 INITIAL_ZOOM_OUT_WINDOW = 45
 
 
@@ -370,14 +371,16 @@ def adjust_frameIds_for_zoom_effect(offense, defense, football, event_frameIds):
     return offense, defense, football, event_frameIds
 
 
-# # gameId, playId, week = 2022090800, 343, 1
+# gameId, playId, week = 2022101609, 2504, 6
+
 #
-# #
 # play = get_play_by_id(gameId, playId)
 # play_df = load_play_data(gameId,playId,week)
+# x=1
 # los, yards_to_go = get_los_details(play, play_df)
 # game = load_game(gameId)
+
+#
 # plays_df = load_all_plays_by_game(gameId, week)
 # x=1
-
-
+#

@@ -1,30 +1,15 @@
-# from tensorflow.keras.models import Model
-# from tensorflow.keras.losses import categorical_crossentropy
-# from tensorflow.keras.layers import (
-#     Conv1D, Conv2D, MaxPooling1D, MaxPooling2D, AvgPool1D, AvgPool2D, Reshape,
-#     Input, Activation, BatchNormalization, Dense, Add, Lambda, Dropout, LayerNormalization)
-#
-# from tensorflow.keras.optimizers import Adam
-# from tensorflow.keras import backend as K
-# from tensorflow.keras.callbacks import Callback, EarlyStopping
-
+import os
+import numpy as np
+from sklearn.model_selection import KFold
 from keras.losses import categorical_crossentropy
 from keras.models import Model
+from keras.optimizers import Adam
+from keras import backend as K
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 
 from keras.layers import (
     Conv1D, Conv2D, MaxPooling1D, MaxPooling2D, AvgPool1D, AvgPool2D, Reshape,
     Input, Activation, BatchNormalization, Dense, Add, Lambda, Dropout, LayerNormalization)
-
-from keras.optimizers import Adam
-from keras import backend as K
-from keras.callbacks import Callback, EarlyStopping
-
-import numpy as np
-import pandas as pd
-import keras
-import tensorflow as tf
-from sklearn.model_selection import train_test_split
-from sklearn.model_selection import KFold
 
 
 def get_conv_net(num_classes_y=11):
@@ -77,41 +62,6 @@ def get_conv_net(num_classes_y=11):
     return model
 
 
-# class Metric(Callback):
-#     def __init__(self, model, callbacks, data):
-#         super().__init__()
-#         self.model = model
-#         self.callbacks = callbacks
-#         self.data = data
-#
-#     def on_train_begin(self, logs=None):
-#         for callback in self.callbacks:
-#             callback.on_train_begin(logs)
-#
-#     def on_train_end(self, logs=None):
-#         for callback in self.callbacks:
-#             callback.on_train_end(logs)
-#
-#     def on_epoch_end(self, batch, logs=None):
-#         X_valid, y_valid = self.data[0], self.data[1]
-#
-#         y_pred = self.model.predict(X_valid)
-#         y_true = np.clip(np.cumsum(y_valid, axis=1), 0, 1)
-#         y_pred = np.clip(np.cumsum(y_pred, axis=1), 0, 1)
-#         val_s = ((y_true - y_pred) ** 2).sum(axis=1).sum(axis=0) / (199 * X_valid.shape[0])
-#         logs['val_CRPS'] = val_s
-#
-#         y_pred = self.model.predict(X_valid)
-#         y_true = np.zeros_like(y_pred)
-#         y_true[np.arange(y_true.shape[0]), np.argmax(y_valid, axis=1)] = 1
-#
-#         val_loss = CategoricalCrossentropy()(y_true, y_pred).numpy()
-#
-#
-#         for callback in self.callbacks:
-#             callback.on_epoch_end(batch, logs)
-
-
 def train_model(train_x, train_y, num_classes_y=11):
     models = []
     kf = KFold(n_splits=8, shuffle=True, random_state=42)
@@ -123,8 +73,8 @@ def train_model(train_x, train_y, num_classes_y=11):
         y_train, y_val = train_y[tdx], train_y[vdx]
 
         # Convert y_train and y_val to one-hot encoded format
-        y_train_onehot = keras.utils.to_categorical(y_train, num_classes=num_classes_y)
-        y_val_onehot = keras.utils.to_categorical(y_val, num_classes=num_classes_y)
+        # y_train_onehot = keras.utils.to_categorical(y_train, num_classes=num_classes_y)
+        # y_val_onehot = keras.utils.to_categorical(y_val, num_classes=num_classes_y)
 
         # y_train_values = np.zeros((len(y_train), num_classes_y), np.int32)
         # for irow, row in enumerate(y_train):
@@ -140,6 +90,16 @@ def train_model(train_x, train_y, num_classes_y=11):
 
         model = get_conv_net(num_classes_y)
 
+        checkpoint_filepath = f'best_model_fold_{i}.keras'
+        checkpoint_filepath = os.path.join('processed_data', 'models', checkpoint_filepath)
+        model_checkpoint = ModelCheckpoint(
+            filepath=checkpoint_filepath,
+            save_best_only=True,
+            monitor='val_loss',
+            mode='min',
+            verbose=1
+        )
+
         es = EarlyStopping(monitor='val_loss',
                            mode='min',
                            restore_best_weights=True,
@@ -151,7 +111,7 @@ def train_model(train_x, train_y, num_classes_y=11):
 
         lr_i = 1e-3
         lr_f = 5e-4
-        n_epochs = 50
+        n_epochs = 25
 
         decay = (1 - lr_f / lr_i) / ((lr_f / lr_i) * n_epochs - 1)  # Time-based decay formula
         alpha = (lr_i * (1 + decay))
@@ -162,12 +122,12 @@ def train_model(train_x, train_y, num_classes_y=11):
                       optimizer=opt, metrics=['accuracy'])
 
         history = model.fit(X_train,
-                            y_train_onehot,
+                            y_train,
                             epochs=n_epochs,
                             batch_size=64,
                             verbose=1,
-                            validation_data=(X_val, y_val_onehot),
-                            callbacks=[es])
+                            validation_data=(X_val, y_val),
+                            callbacks=[es, model_checkpoint])
 
         # Get the best validation loss and accuracy from the history
         best_val_loss = min(history.history['val_loss'])
@@ -193,4 +153,4 @@ print('Train_x Shape: ', train_x.shape)
 train_y = np.load('processed_data/train_y_v0.npy')
 # train_y = pd.read_pickle('processed_data/train_y_v0.pkl')
 print('Train_y Shape: ',train_y.shape)
-# train_model(train_x, train_y, num_classes_y=11)
+train_model(train_x, train_y, num_classes_y=11)

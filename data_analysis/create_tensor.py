@@ -1,18 +1,16 @@
 import numpy as np
 import os
-import pandas as pd
-from CastleDefense.data_analysis.preprocessing_data import get_plays_data
-from CastleDefense.data_analysis.feature_extraction import get_extracted_features
 
 processed_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data_analysis/processed_data'))
+practice_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data_analysis/practice_data'))
 
 
 def create_tensor_train_x(tracking_data):
     """
     Creates the train_x tensor
     """
-    df_play = get_plays_data()
-    df_play.sort_values(by=['playId', 'gameId'], inplace=True)
+    # df_play = get_plays_data()
+    # df_play.sort_values(by=['playId', 'gameId'], inplace=True)
     tracking_data.sort_values(by=['playId', 'gameId', 'frameId'], inplace=True)
     grouped_plays_df = tracking_data.groupby(['playId', 'gameId', 'frameId'])
 
@@ -55,7 +53,9 @@ def create_tensor_train_x(tracking_data):
 
         i += 1
 
-    np.save(os.path.join(processed_data_path, 'train_x_v0.npy'), train_x)
+    np.save(os.path.join(practice_data_path, 'train_x_v0.npy'), train_x)
+
+    return train_x
 
 
 def create_tensor_train_y(tracking_data):
@@ -76,9 +76,9 @@ def create_tensor_train_y(tracking_data):
     np.save(os.path.join(processed_data_path, 'train_y_v0.npy'), train_y)
 
 
-tracking_data = get_extracted_features()
-print('Extracted features loaded')
-# create_tensor_train_x(tracking_data)
-# print('Train_x tensor created')
-create_tensor_train_y(tracking_data)
-print('Train_y tensor created')
+# tracking_data = get_extracted_features()
+# print('Extracted features loaded')
+# # create_tensor_train_x(tracking_data)
+# # print('Train_x tensor created')
+# create_tensor_train_y(tracking_data)
+# print('Train_y tensor created')

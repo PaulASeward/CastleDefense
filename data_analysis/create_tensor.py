@@ -24,8 +24,6 @@ def create_tensor_train_x(tracking_data):
     # D: 5 Vector features - Projections on X,Y axis = size of 10
 
     i = 0  # Play frame index. Used to index train_x
-
-
     for (play_id, game_id, frameId), play_group in grouped_plays_df:
         offense_ids = play_group[(play_group['is_on_offense'] == 1) & (play_group['ball_carrier'] == 0)].index
         defense_ids = play_group[play_group['is_on_offense'] == 0].index
@@ -37,23 +35,23 @@ def create_tensor_train_x(tracking_data):
             [def_rusher_Sx, def_rusher_Sy] = play_group.loc[defense_id, ['relative_s_x_to_ball_carrier', 'relative_s_y_to_ball_carrier']].values
 
             # The below code does the same as here slightly elss efficiently, but more interpretable
-            # train_x[i, j, :, :4] = play_group.loc[offense_ids, ['s_x', 's_y', 'x', 'y']].values - np.array([def_Sx, def_Sy, def_x, def_y])
-            # train_x[i, j, :, -6:] = [def_rusher_Sx, def_rusher_Sy, def_rusher_x, def_rusher_y, def_Sx, def_Sy]
+            train_x[i, j, :, :4] = play_group.loc[offense_ids, ['s_x', 's_y', 'x', 'y']].values - np.array([def_Sx, def_Sy, def_x, def_y])
+            train_x[i, j, :, -6:] = [def_rusher_Sx, def_rusher_Sy, def_rusher_x, def_rusher_y, def_Sx, def_Sy]
 
-            # The first layer of the tensor is the relative speed of the offensive players to the defensive player
-            train_x[i, j, :, :2] = play_group.loc[offense_ids, ['s_x', 's_y']].values - np.array([def_Sx, def_Sy])
-
-            # The second layer of the tensor is the relative position of the offensive players to the defensive player
-            train_x[i, j, :, 2:4] = play_group.loc[offense_ids, ['x', 'y']].values - np.array([def_x, def_y])
-
-            # The third layer of the tensor is the relative speed of the defensive player to the ball carrier
-            train_x[i, j, :, 4:6] = np.array([def_rusher_Sx, def_rusher_Sy])
-
-            # The fourth layer of the tensor is the relative position of the defensive player to the ball carrier
-            train_x[i, j, :, 6:8] = np.array([def_rusher_x, def_rusher_y])
-
-            # The fifth layer of the tensor is the speed of the defensive player
-            train_x[i, j, :, 8:10] = np.array([def_Sx, def_Sy])
+            # # The first layer of the tensor is the relative speed of the offensive players to the defensive player
+            # train_x[i, j, :, :2] = play_group.loc[offense_ids, ['s_x', 's_y']].values - np.array([def_Sx, def_Sy])
+            #
+            # # The second layer of the tensor is the relative position of the offensive players to the defensive player
+            # train_x[i, j, :, 2:4] = play_group.loc[offense_ids, ['x', 'y']].values - np.array([def_x, def_y])
+            #
+            # # The third layer of the tensor is the relative speed of the defensive player to the ball carrier
+            # train_x[i, j, :, 4:6] = np.array([def_rusher_Sx, def_rusher_Sy])
+            #
+            # # The fourth layer of the tensor is the relative position of the defensive player to the ball carrier
+            # train_x[i, j, :, 6:8] = np.array([def_rusher_x, def_rusher_y])
+            #
+            # # The fifth layer of the tensor is the speed of the defensive player
+            # train_x[i, j, :, 8:10] = np.array([def_Sx, def_Sy])
 
         i += 1
 
@@ -65,16 +63,22 @@ def create_tensor_train_y(tracking_data):
     Creates the train_y tensor. Each frameId for each play will have size 11 x 1 representing the actual tackle made
     """
     tracking_data.sort_values(by=['playId', 'gameId', 'frameId'], inplace=True)
+    grouped_plays_df = tracking_data.groupby(['playId', 'gameId', 'frameId'])
 
-    train_y = tracking_data['made_tackle'].copy()
+    train_y = np.zeros([len(grouped_plays_df.size()), 11])
 
-    # np.save(os.path.join(processed_data_path, 'train_y_v0.npy'), train_y)
-    train_y.to_pickle(os.path.join(processed_data_path, 'train_y_v0.pkl'))
+    i = 0  # Play frame index. Used to index train_y
+    for (play_id, game_id, frameId), play_group in grouped_plays_df:
+        defense_ids = play_group[play_group['is_on_offense'] == 0].index
+        train_y[i, :] = play_group.loc[defense_ids, ['made_tackle']].values.reshape(11)
+        i += 1
+
+    np.save(os.path.join(processed_data_path, 'train_y_v0.npy'), train_y)
 
 
 tracking_data = get_extracted_features()
 print('Extracted features loaded')
-create_tensor_train_x(tracking_data)
-print('Train_x tensor created')
-# create_tensor_train_y(tracking_data)
-# print('Train_y tensor created')
+# create_tensor_train_x(tracking_data)
+# print('Train_x tensor created')
+create_tensor_train_y(tracking_data)
+print('Train_y tensor created')

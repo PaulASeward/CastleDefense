@@ -1,26 +1,33 @@
-from tensorflow.keras.models import Model
-from tensorflow.keras.losses import categorical_crossentropy
+# from tensorflow.keras.models import Model
+# from tensorflow.keras.losses import categorical_crossentropy
+# from tensorflow.keras.layers import (
+#     Conv1D, Conv2D, MaxPooling1D, MaxPooling2D, AvgPool1D, AvgPool2D, Reshape,
+#     Input, Activation, BatchNormalization, Dense, Add, Lambda, Dropout, LayerNormalization)
+#
+# from tensorflow.keras.optimizers import Adam
+# from tensorflow.keras import backend as K
+# from tensorflow.keras.callbacks import Callback, EarlyStopping
 
-from tensorflow.keras.layers import (
+from keras.losses import categorical_crossentropy
+from keras.models import Model
+
+from keras.layers import (
     Conv1D, Conv2D, MaxPooling1D, MaxPooling2D, AvgPool1D, AvgPool2D, Reshape,
     Input, Activation, BatchNormalization, Dense, Add, Lambda, Dropout, LayerNormalization)
 
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras import backend as K
-from tensorflow.keras.callbacks import Callback, EarlyStopping
-from tensorflow.keras.losses import CategoricalCrossentropy
+from keras.optimizers import Adam
+from keras import backend as K
+from keras.callbacks import Callback, EarlyStopping
 
 import numpy as np
 import pandas as pd
+import keras
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import KFold
 
-train_x = np.load('processed_data/train_x_v0.npy')
-train_y = pd.read_pickle('processed_data/train_y_v0.pkl')
 
-
-def get_conv_net(num_classes_y):
+def get_conv_net(num_classes_y=11):
     # _, x, y, z = train_x.shape
     inputdense_players = Input(shape=(11, 10, 10), name="playersfeatures_input")
 
@@ -116,8 +123,8 @@ def train_model(train_x, train_y, num_classes_y=11):
         y_train, y_val = train_y[tdx], train_y[vdx]
 
         # Convert y_train and y_val to one-hot encoded format
-        y_train_onehot = tf.keras.utils.to_categorical(y_train, num_classes=num_classes_y)
-        y_val_onehot = tf.keras.utils.to_categorical(y_val, num_classes=num_classes_y)
+        y_train_onehot = keras.utils.to_categorical(y_train, num_classes=num_classes_y)
+        y_val_onehot = keras.utils.to_categorical(y_val, num_classes=num_classes_y)
 
         # y_train_values = np.zeros((len(y_train), num_classes_y), np.int32)
         # for irow, row in enumerate(y_train):
@@ -179,3 +186,11 @@ def train_model(train_x, train_y, num_classes_y=11):
     print(f"Average Val Accuracy: {avg_val_accuracy}")
 
     return models
+
+
+train_x = np.load('processed_data/train_x_v0.npy')
+print('Train_x Shape: ', train_x.shape)
+train_y = np.load('processed_data/train_y_v0.npy')
+# train_y = pd.read_pickle('processed_data/train_y_v0.pkl')
+print('Train_y Shape: ',train_y.shape)
+# train_model(train_x, train_y, num_classes_y=11)

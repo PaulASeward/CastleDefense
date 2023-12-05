@@ -20,20 +20,23 @@ To use Castle Defense, follow these steps:
 
 1. Clone this repository:
 
-   ```shell
-   git clone https://github.com/your-username/castle-defense-repo.git
+```shell
+git clone https://github.com/PaulASeward/castle-defense-repo.git
+```
 
-    Install the required dependencies by running:
+2. Activate the virtual environment:
+```bash
+cd CastleDefense
+source venv/bin/activate
+```
 
-    shell
 
-    pip install -r requirements.txt
+Install the required dependencies by running:
 
-Usage
-
-    [Explain how to use your project. Provide examples and usage instructions.]
-
-Requirements
+```bash
+pip install -r requirements.txt
+```
+### Requirements:
 
 Castle Defense requires the following dependencies, which are listed in the requirements.txt file:
 
@@ -44,16 +47,3 @@ Castle Defense requires the following dependencies, which are listed in the requ
     matplotlib
     ipywidgets
     dateutil
-
-Features
-
-    [List the key features of your project.]
-
-Contributing
-
-[Explain how others can contribute to your project, submit issues, or suggest improvements.]
-License
-
-This project is licensed under the [License Name] License. See the LICENSE file for details.
-
-[Include any relevant contact information or acknowledgments if needed.]

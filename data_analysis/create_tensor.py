@@ -82,6 +82,7 @@ def create_tensor_train_y(tracking_data):
     i = 0  # Play frame index. Used to index train_y
     for (play_id, game_id, frameId), play_group in grouped_plays_df:
         defense = play_group[play_group['is_on_offense'] == 0]
+        defense = defense.sort_values(by='nflId')
         train_y[i, :] = play_group.loc[defense.index, ['made_tackle']].values.reshape(11)
         i += 1
 

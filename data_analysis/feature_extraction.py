@@ -61,7 +61,7 @@ def calculate_relative_features(tracking_data):
 
 def remove_redundant_features(tracking_data):
     tracking_data = tracking_data[tracking_data['club'] != 'football']
-    redundant_features = ['time', 'nflId', 'displayName', 'club', 'jerseyNumber', 'playDirection', 's', 'dir', 'dis', 'o','event']
+    redundant_features = ['time', 'club', 'jerseyNumber', 'playDirection', 's', 'dir', 'dis', 'o','event']
     tracking_data = tracking_data.drop(redundant_features, axis=1)
     return tracking_data
 
@@ -124,7 +124,7 @@ def extract_predicted_tackler(tracking_data):
 # offense_label = add_offense_label(relative_features)
 # print('Added offense label')
 # offense_label.to_csv(extracted_features_path, index=False)
-#
+# #
 # tracking_data_all_features = pd.read_csv(tracking_data_all_features_path)
 # print('Read offense label')
 # extracted_features = remove_redundant_features(tracking_data_all_features)

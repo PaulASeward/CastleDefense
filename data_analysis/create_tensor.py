@@ -1,7 +1,9 @@
 import numpy as np
+import pandas as pd
 import os
 
 processed_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data_analysis/processed_data'))
+extracted_features_path = os.path.join(processed_data_path, 'extracted_features.csv')
 practice_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data_analysis/practice_data'))
 
 
@@ -53,6 +55,9 @@ def create_tensor_train_x(tracking_data):
 
         i += 1
 
+        if i == 5:
+            return None
+
     np.save(os.path.join(practice_data_path, 'train_x_v0.npy'), train_x)
 
     return train_x
@@ -76,9 +81,9 @@ def create_tensor_train_y(tracking_data):
     np.save(os.path.join(processed_data_path, 'train_y_v0.npy'), train_y)
 
 
-# tracking_data = get_extracted_features()
-# print('Extracted features loaded')
-# # create_tensor_train_x(tracking_data)
-# # print('Train_x tensor created')
+tracking_data = pd.read_csv(extracted_features_path)
+print('Extracted features loaded')
+create_tensor_train_x(tracking_data)
+# print('Train_x tensor created')
 # create_tensor_train_y(tracking_data)
 # print('Train_y tensor created')

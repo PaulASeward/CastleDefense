@@ -3,7 +3,7 @@ import math
 import numpy as np
 import pandas as pd
 from CastleDefense.utils.extractPlayDataUtils import load_all_plays_by_game
-from CastleDefense.data_analysis.preprocessing_data import *
+from CastleDefense.data_analysis.preprocessing_data import process_data
 from CastleDefense.data_analysis.model_predictions import use_model_to_predict_tackler
 
 processed_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data_analysis/processed_data'))

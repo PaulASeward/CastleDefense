@@ -39,14 +39,13 @@ def calculate_relative_features(tracking_data):
     ball_carrier.set_index(['gameId', 'playId', 'frameId'], inplace=True, drop=True)
     playId_rusher_map = ball_carrier[['x', 'y', 's_x', 's_y']].to_dict(orient='index')
 
-    tracking_data['ball_carrier_x'] = tracking_data.apply(
-        lambda row: playId_rusher_map.get((row['gameId'], row['playId'], row['frameId']), {}).get('x', None), axis=1)
-    tracking_data['ball_carrier_y'] = tracking_data.apply(
-        lambda row: playId_rusher_map.get((row['gameId'], row['playId'], row['frameId']), {}).get('y', None), axis=1)
-    tracking_data['ball_carrier_s_x'] = tracking_data.apply(
-        lambda row: playId_rusher_map.get((row['gameId'], row['playId'], row['frameId']), {}).get('s_x', None), axis=1)
-    tracking_data['ball_carrier_s_y'] = tracking_data.apply(
-        lambda row: playId_rusher_map.get((row['gameId'], row['playId'], row['frameId']), {}).get('s_y', None), axis=1)
+    tracking_data['ball_carrier_x'] = tracking_data.apply(lambda row: playId_rusher_map.get((row['gameId'], row['playId'], row['frameId']), {}).get('x', None), axis=1)
+
+    tracking_data['ball_carrier_y'] = tracking_data.apply(lambda row: playId_rusher_map.get((row['gameId'], row['playId'], row['frameId']), {}).get('y', None), axis=1)
+
+    tracking_data['ball_carrier_s_x'] = tracking_data.apply(lambda row: playId_rusher_map.get((row['gameId'], row['playId'], row['frameId']), {}).get('s_x', None), axis=1)
+
+    tracking_data['ball_carrier_s_y'] = tracking_data.apply(lambda row: playId_rusher_map.get((row['gameId'], row['playId'], row['frameId']), {}).get('s_y', None), axis=1)
 
     # Calculate differences between the ball carrier and the other players:
     tracking_data['dist_x_to_ball_carrier'] = tracking_data['ball_carrier_x'] - tracking_data['x']
@@ -77,16 +76,20 @@ def get_extracted_features():
     return pd.read_csv(extracted_features_path)
 
 
-def append_predicted_tackler(tracking_data, y_pred):
+def append_predicted_tackler(tracking_data, y_pred_play):
+    # y_pred_play dimension: 2D Array: Each frame of a play has prediction prob. For each defense player.
+    # The index of players will match their nflId sorted index when tensor was created.
+
     # Create empty new column for predicted tackler
     tracking_data['predicted_tackler'] = np.zeros(len(tracking_data))
 
-    grouped_frames_df = tracking_data.groupby(['frameId'])
+    grouped_frames_df = tracking_data.groupby(['frameId'])  # Can use playId and gameId to sort as well for 2+ play DF
     for frame_id, frame_group in grouped_frames_df:
-        defense_ids = frame_group[frame_group['is_on_offense'] == 0].index
+        defense = frame_group[frame_group['is_on_offense'] == 0]
+        defense = defense.sort_values(by='nflId')
 
-        for i, defense_id in enumerate(defense_ids):
-            tracking_data.loc[defense_id, 'predicted_tackler'] = y_pred[frame_id-1][i]
+        for i, defense_id in enumerate(defense.index):
+            tracking_data.loc[defense_id, 'predicted_tackler'] = y_pred_play[frame_id-1][i]
 
     return tracking_data
 

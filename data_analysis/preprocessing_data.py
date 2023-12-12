@@ -1,6 +1,7 @@
 # Joining the tracking data with the tackler/assist of a play - the variable we are predicting a probability for
 
 import pandas as pd
+import numpy as np
 import os
 
 tracking_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'tracking_data'))
@@ -10,6 +11,7 @@ combined_tracking_data_path = os.path.join(processed_data_path, 'combined_tracki
 ball_carrier_tracking_data_path = os.path.join(processed_data_path, 'ball_carrier_tracking_data.csv')
 standard_tracking_data_path = os.path.join(processed_data_path, 'standard_tracking_data.csv')
 tackler_added_tracking_data_path = os.path.join(processed_data_path, 'tackler_added_tracking_data.csv')
+offense_labeled_tracking_data_path = os.path.join(processed_data_path, 'offense_label_added_tracking_data.csv')
 plays_data_path = os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'overview_data')), 'plays.csv')
 
 
@@ -36,13 +38,30 @@ def add_tackler_to_tracking_data(tracking_data):
     We decided to add assisted tackles since this measures the defensive player's ability to impact the ball carrier
     """
     tackles_df = pd.read_csv(tackles_data_path)
+    merged_df = pd.merge(tracking_data, tackles_df, on=['gameId', 'playId', 'nflId'], how='left')
 
-    merged_df = pd.merge(tracking_data, tackles_df, on=['gameId', 'playId'], how='left')
+    # Filter the merged DataFrame to include only rows where the player made a tackle
+    tracking_data['made_tackle'] = np.where((merged_df['tackle'] == 1), 1, 0)
 
-    # Assign 1 or 0 to each player based on whether they made a tackle or not
-    tracking_data['made_tackle'] = merged_df.apply(
-        lambda row: 1 if row['nflId_x'] == row['nflId_y'] and (row['tackle'] == 1 or row['assist'] == 1) else 0,
-        axis=1)
+    # # Assign 1 or 0 to each player based on whether they made a tackle or not
+    # tracking_data['made_tackle'] = 0
+    # tracking_data.loc[filtered_df.index, 'made_tackle'] = 1
+
+    # # Print the count of 'made_tackle' column with value 0
+    # print("Count of made_tackle == 0:", len(tracking_data[tracking_data['made_tackle'] == 0]))
+    #
+    # # Print the count of 'made_tackle' column with value 1
+    # print("Count of made_tackle == 1:", len(tracking_data[tracking_data['made_tackle'] == 1]))
+
+    # Filter the merged DataFrame to include only rows where the player made a tackle or assist
+    # filtered_df = merged_df.loc[(merged_df['nflId_x'] == merged_df['nflId_y']) & ((merged_df['tackle'] == 1) | (merged_df['assist'] == 1))]
+
+    # tracking_data['made_tackle'] = merged_df.loc[(merged_df['nflId_x'] == merged_df['nflId_y']) & (merged_df['tackle'] == 1)]
+    # # Assign 1 or 0 to each player based on whether they made a tackle or not
+    # tracking_data['made_tackle'] = merged_df.apply(lambda row: 1 if row['nflId_x'] == row['nflId_y'] and (row['tackle'] == 1) else 0, axis=1)
+    # use assists as well to incorporate more possible influence defender has on Ball Carrier
+    # tracking_data['made_tackle'] = merged_df.apply( lambda row: 1 if row['nflId_x'] == row['nflId_y'] and (row['tackle'] == 1 or row['assist'] == 1) else 0, axis=1)
+
     return tracking_data
 
 
@@ -88,7 +107,9 @@ def add_ball_carrier_to_tracking_data(tracking_data):
 
     merged_df = pd.merge(tracking_data, plays_df, on=['gameId', 'playId'], how='left')
 
-    tracking_data['ball_carrier'] = merged_df.apply(lambda row: 1 if row['nflId'] == row['ballCarrierId'] else 0, axis=1)
+    # tracking_data['ball_carrier'] = merged_df.apply(lambda row: 1 if row['nflId'] == row['ballCarrierId'] else 0, axis=1)
+
+    tracking_data['ball_carrier'] = np.where(merged_df['nflId'] == merged_df['ballCarrierId'], 1, 0)
 
     return tracking_data
 
@@ -101,7 +122,11 @@ def add_offense_label(tracking_data):
 
     merged_df = pd.merge(tracking_data, plays_df, on=['gameId', 'playId'], how='left')
 
-    tracking_data['is_on_offense'] = merged_df.apply(lambda row: 1 if row['club'] == row['possessionTeam'] else 0, axis=1)
+    # tracking_data['is_on_offense'] = merged_df.apply(lambda row: 1 if row['club'] == row['possessionTeam'] else 0, axis=1)
+
+    # Use more efficient numpy method to utilize vectorization
+    tracking_data['is_on_offense'] = np.where(merged_df['club'] == merged_df['possessionTeam'], 1, 0)
+
 
     # # Use a lambda function to determine offense status
     # tracking_data['is_on_offense'] = tracking_data.apply(
@@ -159,6 +184,10 @@ def process_data(tracking_data):
 # tracking_data = add_ball_carrier_to_tracking_data(tracking_data)
 # tracking_data.to_csv(ball_carrier_tracking_data_path, index=False)
 
+# tracking_data = pd.read_csv(ball_carrier_tracking_data_path)
+# tracking_data = add_offense_label(tracking_data)
+# tracking_data.to_csv(offense_labeled_tracking_data_path, index=False)
+
 
 # # Sanity Check on df lengths
 # combined_df_length = len(get_combined_tracking_data())
@@ -170,3 +199,8 @@ def process_data(tracking_data):
 # print('Tackler Added Length:', tackler_added_length)
 # print('Standard Tracking Length:', standard_tracking_length)
 # # print('Ball Carrier Length:', ball_carrier_length)
+
+
+tracking_data = combine_tracking_weeks()
+tracking_data = process_data(tracking_data)
+tracking_data.to_csv(offense_labeled_tracking_data_path)

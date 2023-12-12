@@ -2,12 +2,13 @@ import os
 import math
 import numpy as np
 import pandas as pd
-from CastleDefense.utils.extractPlayDataUtils import load_all_plays_by_game
+# from CastleDefense.utils.extractPlayDataUtils import load_all_plays_by_game
 from CastleDefense.data_analysis.preprocessing_data import process_data
 from CastleDefense.data_analysis.model_predictions import use_model_to_predict_tackler
 
 processed_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data_analysis/processed_data'))
 combined_tracking_data_path = os.path.join(processed_data_path, 'combined_tracking_data.csv')
+offense_labeled_tracking_data_path = os.path.join(processed_data_path, 'offense_label_added_tracking_data.csv')
 engineered_data_path = os.path.join(processed_data_path, 'engineered_data.csv')
 test_engineered_data_path = os.path.join(processed_data_path, 'test_engineered_data.csv')
 
@@ -101,8 +102,12 @@ def extract_predicted_tackler(tracking_data):
     tracking_data = append_predicted_tackler(tracking_data, y_pred)
     return tracking_data
 
-# ball_carrier_tracking_data = pd.read_csv(ball_carrier_tracking_data_path)
-# # tracking_data = get_combined_tracking_data()
+#
+# tracking_data = pd.read_csv(offense_labeled_tracking_data_path)
+# tracking_data = extract_features(tracking_data)
+# tracking_data.to_csv(extracted_features_path, index=False)
+
+
 # # velocity_tracking_data = replace_speed_scalars_with_vectors(tracking_data)
 # # velocity_tracking_data.to_csv(velocity_engineered_data_path, index=False)
 #

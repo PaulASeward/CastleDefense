@@ -18,4 +18,6 @@ def use_model_to_predict_tackler(tracking_data):
 
     x_train = create_tensor_train_x(tracking_data)
     y_pred = loaded_model.predict(x_train)
+    # TODO: Run through debugger to check y_pred values mmake reasonable sense to amke sure indexes are consistent.
+
     return x_train, y_pred

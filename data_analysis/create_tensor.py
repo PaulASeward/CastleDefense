@@ -89,9 +89,9 @@ def create_tensor_train_y(tracking_data):
     # np.save(os.path.join(processed_data_path, 'train_y_v0.npy'), train_y)
 
 
-tracking_data = pd.read_csv(extracted_features_path)
-print('Extracted features loaded')
-create_tensor_train_x(tracking_data)
+# tracking_data = pd.read_csv(extracted_features_path)
+# print('Extracted features loaded')
+# create_tensor_train_x(tracking_data)
 # print('Train_x tensor created')
 # create_tensor_train_y(tracking_data)
 # print('Train_y tensor created')

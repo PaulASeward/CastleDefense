@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import os
+from tqdm import tqdm
 
 processed_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data_analysis/processed_data'))
 extracted_features_path = os.path.join(processed_data_path, 'extracted_features.csv')
@@ -27,7 +28,7 @@ def create_tensor_train_x(tracking_data):
 
 
     i = 0  # Play frame index. Used to index train_x
-    for (play_id, game_id, frameId), play_group in grouped_plays_df:
+    for (play_id, game_id, frameId), play_group in tqdm(grouped_plays_df):
         offense = play_group[(play_group['is_on_offense'] == 1) & (play_group['ball_carrier'] == 0)]
         offense = offense.sort_values(by='nflId')
         defense = play_group[play_group['is_on_offense'] == 0]

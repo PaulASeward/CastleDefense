@@ -38,12 +38,12 @@ def create_tensor_train_x(tracking_data):
         # Iterate over defensive players, populating the tensor with respect to each defensive play for a play frame.
         for j, defense_id in enumerate(defense.index):
             [def_x, def_y, def_Sx, def_Sy] = play_group.loc[defense_id, ['x', 'y', 's_x', 's_y']].values
-            [def_rusher_x, def_rusher_y] = play_group.loc[defense_id, ['dist_x_to_ball_carrier', 'dist_y_to_ball_carrier']].values
-            [def_rusher_Sx, def_rusher_Sy] = play_group.loc[defense_id, ['relative_s_x_to_ball_carrier', 'relative_s_y_to_ball_carrier']].values
+            [def_dist_x_to_ball_carrier, def_dist_y_to_ball_carrier] = play_group.loc[defense_id, ['dist_x_to_ball_carrier', 'dist_y_to_ball_carrier']].values
+            [def_relative_s_x_to_ball_carrier, def_relative_s_y_to_ball_carrier] = play_group.loc[defense_id, ['relative_s_x_to_ball_carrier', 'relative_s_y_to_ball_carrier']].values
 
-            # The below code does the same as here slightly elss efficiently, but more interpretable
+            # The below code does the same as here slightly less efficiently, but more interpretable
             train_x[i, j, :, :4] = play_group.loc[offense.index, ['s_x', 's_y', 'x', 'y']].values - np.array([def_Sx, def_Sy, def_x, def_y])
-            train_x[i, j, :, -6:] = [def_rusher_Sx, def_rusher_Sy, def_rusher_x, def_rusher_y, def_Sx, def_Sy]
+            train_x[i, j, :, -6:] = [def_relative_s_x_to_ball_carrier, def_relative_s_y_to_ball_carrier, def_dist_x_to_ball_carrier, def_dist_y_to_ball_carrier, def_Sx, def_Sy]
 
             # # The first layer of the tensor is the relative speed of the offensive players to the defensive player
             # train_x[i, j, :, :2] = play_group.loc[offense.index, ['s_x', 's_y']].values - np.array([def_Sx, def_Sy])
@@ -52,10 +52,10 @@ def create_tensor_train_x(tracking_data):
             # train_x[i, j, :, 2:4] = play_group.loc[offense.index, ['x', 'y']].values - np.array([def_x, def_y])
             #
             # # The third layer of the tensor is the relative speed of the defensive player to the ball carrier
-            # train_x[i, j, :, 4:6] = np.array([def_rusher_Sx, def_rusher_Sy])
+            # train_x[i, j, :, 4:6] = np.array([def_relative_s_x_to_ball_carrier, def_relative_s_y_to_ball_carrier])
             #
             # # The fourth layer of the tensor is the relative position of the defensive player to the ball carrier
-            # train_x[i, j, :, 6:8] = np.array([def_rusher_x, def_rusher_y])
+            # train_x[i, j, :, 6:8] = np.array([def_dist_x_to_ball_carrier, def_dist_y_to_ball_carrier])
             #
             # # The fifth layer of the tensor is the speed of the defensive player
             # train_x[i, j, :, 8:10] = np.array([def_Sx, def_Sy])
@@ -70,7 +70,7 @@ def create_tensor_train_x(tracking_data):
 
 def create_tensor_train_y(tracking_data):
     """
-    Deprecated. Should be coupled with train_x to ensure target matches correct play.
+    DEPRECATED. Should be coupled with train_x to ensure target matches correct play.
 
     Creates the train_y tensor. Each frameId for each play will have size 11 x 1 representing the actual tackle made
     """
@@ -89,9 +89,9 @@ def create_tensor_train_y(tracking_data):
     # np.save(os.path.join(processed_data_path, 'train_y_v0.npy'), train_y)
 
 
-# tracking_data = pd.read_csv(extracted_features_path)
-# print('Extracted features loaded')
-# create_tensor_train_x(tracking_data)
-# print('Train_x tensor created')
+tracking_data = pd.read_csv(extracted_features_path)
+print('Extracted features loaded')
+create_tensor_train_x(tracking_data)
+print('Train_x tensor created')
 # create_tensor_train_y(tracking_data)
 # print('Train_y tensor created')

@@ -201,6 +201,20 @@ def process_data(tracking_data):
 # # print('Ball Carrier Length:', ball_carrier_length)
 
 
-tracking_data = combine_tracking_weeks()
-tracking_data = process_data(tracking_data)
-tracking_data.to_csv(offense_labeled_tracking_data_path)
+# tracking_data = combine_tracking_weeks()
+# tracking_data = process_data(tracking_data)
+# tracking_data.to_csv(offense_labeled_tracking_data_path)
+
+## SANITY CHECKS
+# tracking_data = pd.read_csv(offense_labeled_tracking_data_path)
+# print("length of tracking_data: ", len(tracking_data))
+#
+# print("count of offense labels intracking_data: ", len(tracking_data[tracking_data['is_on_offense'] == 1]))
+# print("count of defense and football labels in tracking_data: ", len(tracking_data[tracking_data['is_on_offense'] == 0]))
+#
+# print("count of ball_carriers in tracking_data: ", len(tracking_data[tracking_data['ball_carrier'] == 1]))
+# print("count of non ball_carriers in tracking_data: ", len(tracking_data[tracking_data['ball_carrier'] == 0]))
+#
+# print("count of tackles in tracking_data: ", len(tracking_data[tracking_data['made_tackle'] == 1]))
+# print("count of defense and football labels in tracking_data: ", len(tracking_data[tracking_data['made_tackle'] == 0]))
+

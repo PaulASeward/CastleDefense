@@ -90,7 +90,7 @@ def train_model(train_x, train_y, num_classes_y=11):
 
         model = get_conv_net(num_classes_y)
 
-        checkpoint_filepath = f'best_model_fold_{i}.keras'
+        checkpoint_filepath = f'best_model_fold_{i}.h5'
         checkpoint_filepath = os.path.join('processed_data', 'models', checkpoint_filepath)
         model_checkpoint = ModelCheckpoint(
             filepath=checkpoint_filepath,

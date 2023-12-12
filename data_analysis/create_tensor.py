@@ -21,7 +21,7 @@ def create_tensor_train_x(tracking_data):
     # Tensor Dimensions: [A,B,C,D]
     # A: Play Frame Index =  Number of plays x Number of frames in the play
     # B: Def Player Index to calculate relative features from
-    # C: 10 Offensive Players (ball-carrier omitted) to calculate relative features from
+    # C: 10 Defensive Players (ball-carrier omitted) to calculate relative features from
     # D: 5 Vector features - Projections on X,Y axis = size of 10
 
     train_y = np.zeros([len(grouped_plays_df.size()), 11])
@@ -29,10 +29,11 @@ def create_tensor_train_x(tracking_data):
 
     i = 0  # Play frame index. Used to index train_x
     for (play_id, game_id, frameId), play_group in tqdm(grouped_plays_df):
-        offense = play_group[(play_group['is_on_offense'] == 1) & (play_group['ball_carrier'] == 0)]
+        offense = play_group[(play_group['is_on_offense'] == 1) & (play_group['ball_carrier'] == 0)]  # Only 10 non Ball Carrier offensive players
         offense = offense.sort_values(by='nflId')
-        defense = play_group[play_group['is_on_offense'] == 0]
+        defense = play_group[play_group['is_on_offense'] == 0] # Each defender has geolocation data calculated with respect to other 10 defenders. Hence, the dimensionality of 10 is all that is needed in C dimension of tensor.
         defense = defense.sort_values(by='nflId')
+
 
         train_y[i, :] = play_group.loc[defense.index, ['made_tackle']].values.reshape(11)
 
@@ -63,10 +64,10 @@ def create_tensor_train_x(tracking_data):
 
         i += 1
 
-    np.save(os.path.join(practice_data_path, 'train_x_v0.npy'), train_x)
+    np.save(os.path.join(processed_data_path, 'train_x_v0.npy'), train_x)
     np.save(os.path.join(processed_data_path, 'train_y_v0.npy'), train_y)
 
-    return train_x
+    return train_x, train_y
 
 
 def create_tensor_train_y(tracking_data):
@@ -90,9 +91,9 @@ def create_tensor_train_y(tracking_data):
     # np.save(os.path.join(processed_data_path, 'train_y_v0.npy'), train_y)
 
 
-tracking_data = pd.read_csv(extracted_features_path)
-print('Extracted features loaded')
-create_tensor_train_x(tracking_data)
-print('Train_x tensor created')
+# tracking_data = pd.read_csv(extracted_features_path)
+# print('Extracted features loaded')
+# create_tensor_train_x(tracking_data)
+# print('Train_x tensor created')
 # create_tensor_train_y(tracking_data)
 # print('Train_y tensor created')
